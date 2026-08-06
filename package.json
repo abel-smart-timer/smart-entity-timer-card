@@ -1,0 +1,12 @@
+{
+  "name": "smart-entity-timer-card",
+  "version": "0.1.0",
+  "description": "Visual dashboard card for the Smart Entity Timer Home Assistant integration",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "check": "node --check dist/smart-entity-timer-card.js",
+    "test": "node tests/smoke-test.mjs"
+  },
+  "license": "MIT"
+}

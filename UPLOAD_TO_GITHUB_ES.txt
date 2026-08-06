@@ -1,0 +1,31 @@
+SUBIR SMART ENTITY TIMER CARD 0.1.0 A GITHUB DESDE EL NAVEGADOR
+
+Organización: abel-smart-timer
+Repositorio: smart-entity-timer-card
+Dirección final: https://github.com/abel-smart-timer/smart-entity-timer-card
+
+1. Entra a https://github.com/abel-smart-timer
+2. Abre Repositories y pulsa New repository.
+3. Owner: abel-smart-timer
+4. Repository name: smart-entity-timer-card
+5. Description: A visual timer card for the Smart Entity Timer Home Assistant integration
+6. Visibility: Public
+7. No agregues README, .gitignore ni licencia desde GitHub.
+8. Crea el repositorio.
+9. En el repositorio vacío elige "uploading an existing file".
+10. Extrae este ZIP en Windows.
+11. Abre la carpeta extraída y selecciona TODO SU CONTENIDO, no la carpeta exterior ni el ZIP.
+12. Arrastra las carpetas y archivos a GitHub.
+13. Commit message: Add Smart Entity Timer Card 0.1.0
+14. Selecciona Commit directly to the main branch.
+15. Pulsa Commit changes.
+16. En About agrega estos topics:
+    home-assistant
+    homeassistant
+    hacs
+    lovelace
+    dashboard
+    custom-card
+    timer
+17. Abre Actions y confirma que JavaScript checks y HACS validation terminan en verde.
+18. No crees todavía un Release; primero prueba la tarjeta en HAOS.

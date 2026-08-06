@@ -1,0 +1,19 @@
+SMART ENTITY TIMER CARD 0.1.0 — MANUAL INSTALLATION
+
+1. Copy:
+   dist/smart-entity-timer-card.js
+
+   to:
+   /config/www/smart-entity-timer-card/smart-entity-timer-card.js
+
+2. In Home Assistant open:
+   Settings > Dashboards > three-dot menu > Resources
+
+3. Add a JavaScript Module resource:
+   /local/smart-entity-timer-card/smart-entity-timer-card.js?v=0.1.0
+
+4. Perform a hard browser refresh.
+
+5. Edit a dashboard and add "Smart Entity Timer Card".
+
+6. Select the Smart Entity Timer status sensor.
