@@ -1,4 +1,4 @@
-SMART ENTITY TIMER CARD 0.1.1 — MANUAL INSTALLATION / UPDATE
+SMART ENTITY TIMER CARD 0.2.2 — MANUAL INSTALLATION / UPDATE
 
 REQUIREMENT
 Smart Entity Timer integration 0.1.3 or newer (card_api_version: 2).
@@ -6,8 +6,9 @@ Smart Entity Timer integration 0.1.3 or newer (card_api_version: 2).
 1. Copy dist/smart-entity-timer-card.js to:
    /config/www/smart-entity-timer-card/smart-entity-timer-card.js
 2. In Settings > Dashboards > Resources, use:
-   /local/smart-entity-timer-card/smart-entity-timer-card.js?v=0.1.1
-3. If upgrading from 0.1.0, replace ?v=0.1.0 with ?v=0.1.1.
+   /local/smart-entity-timer-card/smart-entity-timer-card.js?v=0.2.2
+3. If upgrading, change the old ?v=... value to ?v=0.2.2.
 4. Hard-refresh the browser (Ctrl+F5) or fully close/reopen the mobile app.
 
-The existing dashboard card configuration does not need to be recreated.
+Existing 0.1.1 card configurations do not need to be recreated.
+All personalization options are optional.

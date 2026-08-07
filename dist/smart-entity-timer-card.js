@@ -4,11 +4,12 @@
  * MIT License
  */
 
-const CARD_VERSION = "0.1.1";
+const CARD_VERSION = "0.2.2";
 const MIN_CARD_API_VERSION = 2;
 const DOMAIN = "smart_entity_timer";
 const ACTION_TURN_ON = "turn_on";
 const ACTION_TURN_OFF = "turn_off";
+const ACTION_SELECTABLE = "selectable";
 const STATUS_ACTIVE = "active";
 const STATUS_EXECUTING = "executing";
 const STATUS_ERROR = "error";
@@ -21,14 +22,15 @@ const I18N = {
     setup_text: "Selecciona la entidad «Estado del temporizador» creada por Smart Entity Timer.",
     entity_missing: "No se encontró la entidad configurada.",
     incompatible: "La entidad seleccionada no pertenece a una versión compatible de Smart Entity Timer.",
-    target: "Entidad",
     target_state: "Estado actual",
     action: "Acción al finalizar",
     turn_on: "Encender",
     turn_off: "Apagar",
     duration: "Duración",
+    quick_times: "Duraciones rápidas",
     hours: "h",
     minutes: "min",
+    seconds: "s",
     decrement: "Restar {value} min",
     increment: "Sumar {value} min",
     remaining: "Tiempo restante",
@@ -61,6 +63,56 @@ const I18N = {
     status_on: "Encendido",
     status_off: "Apagado",
     status_unavailable: "No disponible",
+    basic_panel: "Configuración general",
+    behavior_panel: "Comportamiento",
+    visibility_panel: "Secciones visibles",
+    colors_panel: "Colores personalizados",
+    name: "Nombre personalizado",
+    icon: "Icono",
+    increment_minutes: "Incremento de los botones",
+    layout: "Diseño",
+    visual_style: "Estilo visual",
+    action_mode: "Acción de la tarjeta",
+    progress_style: "Indicador de progreso",
+    time_format: "Formato del tiempo",
+    quick_times_config: "Duraciones rápidas (minutos)",
+    show_header: "Mostrar encabezado",
+    show_target_state: "Mostrar estado de la entidad",
+    show_action_selector: "Mostrar selector de acción",
+    show_duration_controls: "Mostrar controles de duración",
+    show_quick_times: "Mostrar duraciones rápidas",
+    show_progress: "Mostrar progreso / tiempo",
+    show_status: "Mostrar mensaje de estado",
+    show_last_result: "Mostrar resultado reciente",
+    color_turn_on: "Color Encender",
+    color_turn_off: "Color Apagar",
+    color_start: "Botón Iniciar",
+    color_timer_active: "Botón Timer ON",
+    color_cancel: "Botón Cancelar",
+    color_inactive: "Botón Inactivo / deshabilitado",
+    color_turn_on: "Acción Encender",
+    color_turn_off: "Acción Apagar",
+    color_progress: "Barra / círculo de progreso",
+    color_quick: "Duraciones rápidas",
+    color_quick_selected: "Duración rápida seleccionada",
+    selectable: "Encender y apagar",
+    only_on: "Solo encender",
+    only_off: "Solo apagar",
+    progress_bar: "Barra",
+    progress_ring: "Círculo",
+    progress_time: "Solo tiempo",
+    time_auto: "Automático",
+    time_digital: "Digital",
+    time_text: "Texto",
+    style_modern: "Moderno",
+    style_flat: "Plano",
+    style_minimal: "Minimalista",
+    layout_auto: "Automático",
+    layout_compact: "Compacto",
+    layout_expanded: "Expandido",
+    helper_quick_times: "Agrega minutos, por ejemplo 15, 30, 60 y 120. Déjalo vacío para no usar presets.",
+    helper_colors: "Cada color controla directamente ese elemento. Si queda vacío, se usa el tema de Home Assistant.",
+    helper_action_mode: "Una acción fija oculta el selector y se aplica al iniciar desde esta tarjeta.",
   },
   en: {
     card_name: "Smart Entity Timer",
@@ -68,14 +120,15 @@ const I18N = {
     setup_text: "Select the Timer status entity created by Smart Entity Timer.",
     entity_missing: "The configured entity was not found.",
     incompatible: "The selected entity is not from a compatible Smart Entity Timer version.",
-    target: "Entity",
     target_state: "Current state",
     action: "Action at finish",
     turn_on: "Turn on",
     turn_off: "Turn off",
     duration: "Duration",
+    quick_times: "Quick durations",
     hours: "h",
     minutes: "min",
+    seconds: "s",
     decrement: "Subtract {value} min",
     increment: "Add {value} min",
     remaining: "Time remaining",
@@ -108,11 +161,61 @@ const I18N = {
     status_on: "On",
     status_off: "Off",
     status_unavailable: "Unavailable",
+    basic_panel: "General configuration",
+    behavior_panel: "Behavior",
+    visibility_panel: "Visible sections",
+    colors_panel: "Custom colors",
+    name: "Custom name",
+    icon: "Icon",
+    increment_minutes: "Button increment",
+    layout: "Layout",
+    visual_style: "Visual style",
+    action_mode: "Card action",
+    progress_style: "Progress indicator",
+    time_format: "Time format",
+    quick_times_config: "Quick durations (minutes)",
+    show_header: "Show header",
+    show_target_state: "Show target entity state",
+    show_action_selector: "Show action selector",
+    show_duration_controls: "Show duration controls",
+    show_quick_times: "Show quick durations",
+    show_progress: "Show progress / time",
+    show_status: "Show status message",
+    show_last_result: "Show recent result",
+    color_turn_on: "Turn on color",
+    color_turn_off: "Turn off color",
+    color_start: "Start button",
+    color_timer_active: "Timer ON button",
+    color_cancel: "Cancel button",
+    color_inactive: "Inactive / disabled button",
+    color_turn_on: "Turn on action",
+    color_turn_off: "Turn off action",
+    color_progress: "Progress bar / ring",
+    color_quick: "Quick durations",
+    color_quick_selected: "Selected quick duration",
+    selectable: "Turn on and off",
+    only_on: "Turn on only",
+    only_off: "Turn off only",
+    progress_bar: "Bar",
+    progress_ring: "Ring",
+    progress_time: "Time only",
+    time_auto: "Automatic",
+    time_digital: "Digital",
+    time_text: "Text",
+    style_modern: "Modern",
+    style_flat: "Flat",
+    style_minimal: "Minimal",
+    layout_auto: "Automatic",
+    layout_compact: "Compact",
+    layout_expanded: "Expanded",
+    helper_quick_times: "Add minute values such as 15, 30, 60 and 120. Leave empty to disable presets.",
+    helper_colors: "Each color directly controls that element. Empty values inherit the Home Assistant theme.",
+    helper_action_mode: "A fixed action hides the selector and is applied when starting from this card.",
   },
 };
 
 function languageFor(hass) {
-  const language = hass?.language || hass?.locale?.language || navigator?.language || "en";
+  const language = hass?.language || hass?.locale?.language || globalThis.navigator?.language || "en";
   return String(language).toLowerCase().startsWith("es") ? "es" : "en";
 }
 
@@ -164,6 +267,53 @@ function formatMinutes(totalMinutes, hass) {
   return `${hours} ${t(hass, "hours")} ${remainder} ${t(hass, "minutes")}`;
 }
 
+function formatTextSeconds(totalSeconds, hass) {
+  const seconds = Math.max(0, Math.ceil(Number(totalSeconds) || 0));
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const remainder = seconds % 60;
+  const parts = [];
+  if (hours) parts.push(`${hours} ${t(hass, "hours")}`);
+  if (minutes || hours) parts.push(`${minutes} ${t(hass, "minutes")}`);
+  parts.push(`${remainder} ${t(hass, "seconds")}`);
+  return parts.join(" ");
+}
+
+function formatTimeValue(value, mode, hass, active = false) {
+  const normalized = ["auto", "digital", "text"].includes(mode) ? mode : "auto";
+  if (normalized === "digital") return formatClock(active ? value : Number(value) * 60);
+  if (normalized === "text") return active ? formatTextSeconds(value, hass) : formatMinutes(value, hass);
+  return active ? formatClock(value) : formatMinutes(value, hass);
+}
+
+function parseQuickTimes(value, maximum = 1440) {
+  let raw = value;
+  if (typeof raw === "string") raw = raw.split(/[,;\s]+/g);
+  if (!Array.isArray(raw)) return [];
+  const values = [];
+  for (const item of raw) {
+    const number = Math.round(Number(item));
+    if (!Number.isFinite(number) || number < 1 || number > maximum || values.includes(number)) continue;
+    values.push(number);
+  }
+  return values;
+}
+
+function normalizeColor(value) {
+  if (Array.isArray(value) && value.length === 3) {
+    const rgb = value.map((part) => clamp(Math.round(Number(part) || 0), 0, 255));
+    return `rgb(${rgb[0]} ${rgb[1]} ${rgb[2]})`;
+  }
+  if (typeof value !== "string") return undefined;
+  const candidate = value.trim();
+  if (!candidate) return undefined;
+  if (/^#[0-9a-f]{3,8}$/i.test(candidate)) return candidate;
+  if (/^(rgb|rgba|hsl|hsla)\([0-9.,%\s/+-]+\)$/i.test(candidate)) return candidate;
+  if (/^var\(--[a-z0-9-_]+(?:\s*,\s*[^)]+)?\)$/i.test(candidate)) return candidate;
+  if (/^[a-z]+$/i.test(candidate)) return candidate;
+  return undefined;
+}
+
 function entityDomain(entityId) {
   return String(entityId || "").split(".", 1)[0];
 }
@@ -189,6 +339,9 @@ function statusLabel(hass, state) {
   return state === "off" || state === "standby" ? t(hass, "status_off") : t(hass, "status_on");
 }
 
+function option(value, label) {
+  return { value, label };
+}
 
 class SmartEntityTimerCard extends HTMLElement {
   constructor() {
@@ -214,88 +367,200 @@ class SmartEntityTimerCard extends HTMLElement {
       entity: "",
       increment_minutes: 30,
       layout: "auto",
+      visual_style: "modern",
+      action_mode: "selectable",
+      progress_style: "bar",
+      time_format: "auto",
+      quick_times: [],
+      show_header: true,
       show_target_state: true,
+      show_action_selector: true,
+      show_duration_controls: true,
+      show_quick_times: true,
+      show_progress: true,
+      show_status: true,
       show_last_result: true,
     };
   }
 
   static getConfigForm() {
-    const spanish = String(navigator?.language || "en").toLowerCase().startsWith("es");
-    const labels = spanish
-      ? {
-          entity: "Entidad Estado del temporizador",
-          name: "Nombre personalizado",
-          icon: "Icono",
-          increment_minutes: "Incremento de los botones",
-          layout: "Diseño",
-          show_target_state: "Mostrar estado de la entidad",
-          show_last_result: "Mostrar resultado reciente",
-        }
-      : {
-          entity: "Timer status entity",
-          name: "Custom name",
-          icon: "Icon",
-          increment_minutes: "Button increment",
-          layout: "Layout",
-          show_target_state: "Show target entity state",
-          show_last_result: "Show recent result",
-        };
-    const helpers = spanish
-      ? {
-          entity: "Selecciona el sensor Estado del temporizador de Smart Entity Timer 0.1.3 o posterior.",
-          increment_minutes: "Valor usado por los botones − y +. Puedes introducir cualquier duración manualmente.",
-        }
-      : {
-          entity: "Select the Timer status sensor from Smart Entity Timer 0.1.3 or later.",
-          increment_minutes: "Used by the − and + buttons. Any duration can still be entered manually.",
-        };
+    const spanish = String(globalThis.navigator?.language || "en").toLowerCase().startsWith("es");
+    const dict = I18N[spanish ? "es" : "en"];
+    const selectOptions = (entries) => entries.map(([value, label]) => option(value, label));
 
     return {
       schema: [
         {
-          name: "entity",
-          required: true,
-          selector: {
-            entity: {
-              filter: [{ integration: DOMAIN, domain: "sensor" }],
+          type: "expandable",
+          name: "",
+          title: dict.basic_panel,
+          flatten: true,
+          schema: [
+            {
+              name: "entity",
+              required: true,
+              selector: { entity: { filter: [{ integration: DOMAIN, domain: "sensor" }] } },
             },
-          },
+            {
+              type: "grid",
+              name: "",
+              flatten: true,
+              column_min_width: "180px",
+              schema: [
+                { name: "name", selector: { text: {} } },
+                { name: "icon", selector: { icon: {} }, context: { icon_entity: "entity" } },
+                {
+                  name: "layout",
+                  selector: {
+                    select: {
+                      options: selectOptions([
+                        ["auto", dict.layout_auto],
+                        ["compact", dict.layout_compact],
+                        ["expanded", dict.layout_expanded],
+                      ]),
+                    },
+                  },
+                },
+                {
+                  name: "visual_style",
+                  selector: {
+                    select: {
+                      options: selectOptions([
+                        ["modern", dict.style_modern],
+                        ["flat", dict.style_flat],
+                        ["minimal", dict.style_minimal],
+                      ]),
+                    },
+                  },
+                },
+              ],
+            },
+          ],
         },
         {
-          type: "grid",
+          type: "expandable",
           name: "",
+          title: dict.behavior_panel,
           flatten: true,
-          column_min_width: "180px",
           schema: [
-            { name: "name", selector: { text: {} } },
             {
-              name: "icon",
-              selector: { icon: {} },
-              context: { icon_entity: "entity" },
-            },
-            {
-              name: "increment_minutes",
+              name: "action_mode",
               selector: {
-                number: {
-                  min: 1,
-                  max: 1440,
-                  step: 1,
-                  mode: "box",
-                  unit_of_measurement: "min",
+                select: {
+                  options: selectOptions([
+                    ["selectable", dict.selectable],
+                    ["turn_on", dict.only_on],
+                    ["turn_off", dict.only_off],
+                  ]),
                 },
               },
             },
             {
-              name: "layout",
-              selector: { select: { options: ["auto", "compact", "expanded"] } },
+              type: "grid",
+              name: "",
+              flatten: true,
+              column_min_width: "180px",
+              schema: [
+                {
+                  name: "increment_minutes",
+                  selector: { number: { min: 1, max: 1440, step: 1, mode: "box", unit_of_measurement: "min" } },
+                },
+                {
+                  name: "progress_style",
+                  selector: {
+                    select: {
+                      options: selectOptions([
+                        ["bar", dict.progress_bar],
+                        ["ring", dict.progress_ring],
+                        ["time", dict.progress_time],
+                      ]),
+                    },
+                  },
+                },
+                {
+                  name: "time_format",
+                  selector: {
+                    select: {
+                      options: selectOptions([
+                        ["auto", dict.time_auto],
+                        ["digital", dict.time_digital],
+                        ["text", dict.time_text],
+                      ]),
+                    },
+                  },
+                },
+              ],
             },
-            { name: "show_target_state", selector: { boolean: {} } },
-            { name: "show_last_result", selector: { boolean: {} } },
+            { name: "quick_times", selector: { text: { multiple: true } } },
+          ],
+        },
+        {
+          type: "expandable",
+          name: "",
+          title: dict.visibility_panel,
+          flatten: true,
+          schema: [
+            {
+              type: "grid",
+              name: "",
+              flatten: true,
+              column_min_width: "180px",
+              schema: [
+                { name: "show_header", selector: { boolean: {} } },
+                { name: "show_target_state", selector: { boolean: {} } },
+                { name: "show_action_selector", selector: { boolean: {} } },
+                { name: "show_duration_controls", selector: { boolean: {} } },
+                { name: "show_quick_times", selector: { boolean: {} } },
+                { name: "show_progress", selector: { boolean: {} } },
+                { name: "show_status", selector: { boolean: {} } },
+                { name: "show_last_result", selector: { boolean: {} } },
+              ],
+            },
+          ],
+        },
+        {
+          type: "expandable",
+          name: "",
+          title: dict.colors_panel,
+          flatten: true,
+          schema: [
+            {
+              type: "grid",
+              name: "",
+              flatten: true,
+              column_min_width: "180px",
+              schema: [
+                { name: "color_start", selector: { color_rgb: {} } },
+                { name: "color_timer_active", selector: { color_rgb: {} } },
+                { name: "color_cancel", selector: { color_rgb: {} } },
+                { name: "color_inactive", selector: { color_rgb: {} } },
+                { name: "color_turn_on", selector: { color_rgb: {} } },
+                { name: "color_turn_off", selector: { color_rgb: {} } },
+                { name: "color_progress", selector: { color_rgb: {} } },
+                { name: "color_quick", selector: { color_rgb: {} } },
+                { name: "color_quick_selected", selector: { color_rgb: {} } },
+              ],
+            },
           ],
         },
       ],
-      computeLabel: (schema) => labels[schema.name],
-      computeHelper: (schema) => helpers[schema.name],
+      computeLabel: (schema) => dict[schema.name] || schema.name,
+      computeHelper: (schema) => {
+        if (schema.name === "entity") {
+          return spanish
+            ? "Selecciona el sensor Estado del temporizador de Smart Entity Timer 0.1.3 o posterior."
+            : "Select the Timer status sensor from Smart Entity Timer 0.1.3 or later.";
+        }
+        if (schema.name === "increment_minutes") {
+          return spanish
+            ? "Valor usado por los botones − y +. Puedes introducir cualquier duración manualmente."
+            : "Used by the − and + buttons. Any duration can still be entered manually.";
+        }
+        if (schema.name === "quick_times") return dict.helper_quick_times;
+        if (schema.name === "action_mode") return dict.helper_action_mode;
+        if (schema.name?.startsWith("color_")) return dict.helper_colors;
+        return undefined;
+      },
       assertConfig: (config) => {
         if (config.entity && entityDomain(config.entity) !== "sensor") {
           throw new Error(spanish ? "La entidad principal debe ser un sensor." : "The main entity must be a sensor.");
@@ -305,14 +570,23 @@ class SmartEntityTimerCard extends HTMLElement {
   }
 
   setConfig(config) {
-    if (!config || typeof config !== "object") {
-      throw new Error("Invalid Smart Entity Timer Card configuration");
-    }
+    if (!config || typeof config !== "object") throw new Error("Invalid Smart Entity Timer Card configuration");
     const previousEntity = this._config?.entity;
     this._config = {
       increment_minutes: 30,
       layout: "auto",
+      visual_style: "modern",
+      action_mode: "selectable",
+      progress_style: "bar",
+      time_format: "auto",
+      quick_times: [],
+      show_header: true,
       show_target_state: true,
+      show_action_selector: true,
+      show_duration_controls: true,
+      show_quick_times: true,
+      show_progress: true,
+      show_status: true,
       show_last_result: true,
       ...config,
     };
@@ -331,7 +605,6 @@ class SmartEntityTimerCard extends HTMLElement {
     this._syncDrafts();
     this._updateTicking();
     this._scheduleResultExpiry();
-
     const signature = this._relevantSignature();
     if (signature !== this._lastSignature) {
       this._lastSignature = signature;
@@ -357,14 +630,16 @@ class SmartEntityTimerCard extends HTMLElement {
   }
 
   getCardSize() {
+    if (this._config.visual_style === "minimal") return this._config.layout === "compact" ? 4 : 5;
     return this._config.layout === "compact" ? 5 : 6;
   }
 
   getGridOptions() {
+    const minimal = this._config.visual_style === "minimal";
     return {
-      rows: this._config.layout === "compact" ? 5 : 6,
+      rows: minimal ? (this._config.layout === "compact" ? 4 : 5) : this._config.layout === "compact" ? 5 : 6,
       columns: 6,
-      min_rows: 5,
+      min_rows: 3,
       min_columns: 3,
     };
   }
@@ -389,6 +664,14 @@ class SmartEntityTimerCard extends HTMLElement {
     return [ACTION_TURN_ON, ACTION_TURN_OFF].includes(action) ? action : undefined;
   }
 
+  _fixedAction() {
+    return [ACTION_TURN_ON, ACTION_TURN_OFF].includes(this._config.action_mode) ? this._config.action_mode : undefined;
+  }
+
+  _idleAction() {
+    return this._fixedAction() || this._draftAction;
+  }
+
   _reconcilePending() {
     const status = this._statusState();
     if (!status) return;
@@ -399,18 +682,14 @@ class SmartEntityTimerCard extends HTMLElement {
       const backend = this._backendDuration();
       const changed = lastUpdated && lastUpdated !== this._pendingDuration.baseline;
       const expired = now - this._pendingDuration.started > 2500;
-      if (backend === this._pendingDuration.value || changed || expired) {
-        this._pendingDuration = undefined;
-      }
+      if (backend === this._pendingDuration.value || changed || expired) this._pendingDuration = undefined;
     }
 
     if (this._pendingAction) {
       const backend = this._backendAction();
       const changed = lastUpdated && lastUpdated !== this._pendingAction.baseline;
       const expired = now - this._pendingAction.started > 2500;
-      if (backend === this._pendingAction.value || changed || expired) {
-        this._pendingAction = undefined;
-      }
+      if (backend === this._pendingAction.value || changed || expired) this._pendingAction = undefined;
     }
   }
 
@@ -449,9 +728,7 @@ class SmartEntityTimerCard extends HTMLElement {
   _maxDuration() {
     const constraints = this._statusState()?.attributes?.constraints;
     const maxSeconds = Number(constraints?.max_seconds);
-    if (Number.isFinite(maxSeconds) && maxSeconds >= 60) {
-      return Math.max(1, Math.floor(maxSeconds / 60));
-    }
+    if (Number.isFinite(maxSeconds) && maxSeconds >= 60) return Math.max(1, Math.floor(maxSeconds / 60));
     return 1440;
   }
 
@@ -460,10 +737,7 @@ class SmartEntityTimerCard extends HTMLElement {
     const startedAt = parseDate(status?.attributes?.started_at);
     const finishesAt = parseDate(status?.attributes?.finishes_at);
     if (!finishesAt) {
-      return {
-        remaining: Number(status?.attributes?.remaining_seconds_snapshot) || 0,
-        progress: 0,
-      };
+      return { remaining: Number(status?.attributes?.remaining_seconds_snapshot) || 0, progress: 0 };
     }
     const now = Date.now();
     const remaining = Math.max(0, Math.ceil((finishesAt.getTime() - now) / 1000));
@@ -480,19 +754,21 @@ class SmartEntityTimerCard extends HTMLElement {
     if (this._pending) return false;
     const targetState = status.attributes.target_entity_state;
     const targetEntity = status.attributes.target_entity;
+    const action = this._idleAction();
     if (!stateIsUsable(targetState)) return false;
-    if (targetReached(targetEntity, targetState, this._draftAction)) return false;
+    if (targetReached(targetEntity, targetState, action)) return false;
     return this._draftMinutes >= 1 && this._draftMinutes <= this._maxDuration();
+  }
+
+  _quickDurations() {
+    return parseQuickTimes(this._config.quick_times, this._maxDuration());
   }
 
   _updateTicking() {
     const status = this._statusState()?.state;
     const shouldTick = [STATUS_ACTIVE, STATUS_EXECUTING].includes(status);
-    if (shouldTick && !this._tickInterval) {
-      this._tickInterval = setInterval(() => this._render(), 1000);
-    } else if (!shouldTick) {
-      this._clearTicking();
-    }
+    if (shouldTick && !this._tickInterval) this._tickInterval = setInterval(() => this._render(), 1000);
+    else if (!shouldTick) this._clearTicking();
   }
 
   _clearTicking() {
@@ -531,30 +807,72 @@ class SmartEntityTimerCard extends HTMLElement {
     };
   }
 
-  _statusMessage(status, targetName, targetState, targetEntity) {
+  _statusMessage(status, targetName, targetState, targetEntity, action) {
     if (this._errorMessage) return { type: "error", text: this._errorMessage };
     if (status.attributes.restore_pending) return { type: "info", text: t(this._hass, "restoring") };
     if (status.state === STATUS_EXECUTING) return { type: "info", text: t(this._hass, "executing") };
-    if (status.state === STATUS_ERROR) {
-      return { type: "error", text: status.attributes.last_message || t(this._hass, "error") };
-    }
+    if (status.state === STATUS_ERROR) return { type: "error", text: status.attributes.last_message || t(this._hass, "error") };
     if (status.state === STATUS_ACTIVE) return { type: "active", text: t(this._hass, "active") };
 
     const recent = this._recentResult();
     if (recent) return { type: recent.type, text: recent.message || recent.label, label: recent.label };
-    if (!stateIsUsable(targetState)) {
-      return { type: "warning", text: t(this._hass, "unavailable", { name: targetName }) };
-    }
-    if (targetReached(targetEntity, targetState, this._draftAction)) {
+    if (!stateIsUsable(targetState)) return { type: "warning", text: t(this._hass, "unavailable", { name: targetName }) };
+    if (targetReached(targetEntity, targetState, action)) {
       return {
         type: "muted",
-        text: t(this._hass, this._draftAction === ACTION_TURN_ON ? "already_on" : "already_off", { name: targetName }),
+        text: t(this._hass, action === ACTION_TURN_ON ? "already_on" : "already_off", { name: targetName }),
       };
     }
     return {
       type: "ready",
-      text: t(this._hass, this._draftAction === ACTION_TURN_ON ? "ready_on" : "ready_off", { name: targetName }),
+      text: t(this._hass, action === ACTION_TURN_ON ? "ready_on" : "ready_off", { name: targetName }),
     };
+  }
+
+  _colorVariables() {
+    const entries = [
+      ["--set-custom-on", normalizeColor(this._config.color_turn_on)],
+      ["--set-custom-off", normalizeColor(this._config.color_turn_off)],
+      ["--set-custom-start", normalizeColor(this._config.color_start)],
+      ["--set-custom-timer-active", normalizeColor(this._config.color_timer_active)],
+      ["--set-custom-cancel", normalizeColor(this._config.color_cancel)],
+      ["--set-custom-inactive", normalizeColor(this._config.color_inactive)],
+      ["--set-custom-progress", normalizeColor(this._config.color_progress)],
+      ["--set-custom-quick", normalizeColor(this._config.color_quick)],
+      ["--set-custom-quick-selected", normalizeColor(this._config.color_quick_selected)],
+    ];
+    return entries.filter(([, value]) => value).map(([name, value]) => `${name}:${value}`).join(";");
+  }
+
+  _renderProgress(style, active, progress, value, label) {
+    if (!this._config.show_progress) return "";
+    const safeProgress = active ? clamp(progress, 0, 100) : 0;
+    if (style === "ring") {
+      return `
+        <div class="progress-visual ring-mode">
+          <div class="ring-wrap" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${escapeHtml(Math.round(safeProgress))}">
+            <svg viewBox="0 0 120 120" aria-hidden="true">
+              <circle class="ring-track" cx="60" cy="60" r="50"></circle>
+              <circle class="ring-value" cx="60" cy="60" r="50" pathLength="100" style="stroke-dasharray:${escapeHtml(safeProgress)} 100"></circle>
+            </svg>
+            <div class="ring-center"><strong>${escapeHtml(value)}</strong><span>${escapeHtml(label)}</span></div>
+          </div>
+        </div>`;
+    }
+    if (style === "time") {
+      return `
+        <div class="progress-visual time-mode">
+          <span>${escapeHtml(label)}</span>
+          <strong>${escapeHtml(value)}</strong>
+        </div>`;
+    }
+    return `
+      <div class="progress-visual bar-mode">
+        <div class="progress-heading"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>
+        <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${escapeHtml(Math.round(safeProgress))}">
+          <div class="progress-fill" style="width:${escapeHtml(safeProgress)}%"></div>
+        </div>
+      </div>`;
   }
 
   _render() {
@@ -586,7 +904,7 @@ class SmartEntityTimerCard extends HTMLElement {
     const active = status.state === STATUS_ACTIVE;
     const executing = status.state === STATUS_EXECUTING;
     const busy = active || executing;
-    const action = busy ? status.attributes.end_action : this._draftAction;
+    const action = busy ? status.attributes.end_action : this._idleAction();
     const targetName = status.attributes.target_entity_name || status.attributes.target_entity || this._config.entity;
     const targetEntity = status.attributes.target_entity;
     const targetState = status.attributes.target_entity_state;
@@ -600,86 +918,104 @@ class SmartEntityTimerCard extends HTMLElement {
     const { remaining, progress } = this._remainingAndProgress();
     const canStart = this._localCanStart();
     const canCancel = active && !this._pending;
-    const statusMessage = this._statusMessage(status, targetName, targetState, targetEntity);
+    const statusMessage = this._statusMessage(status, targetName, targetState, targetEntity, action);
     const layoutClass = ["compact", "expanded"].includes(this._config.layout) ? this._config.layout : "auto";
+    const visualStyle = ["flat", "minimal"].includes(this._config.visual_style) ? this._config.visual_style : "modern";
+    const progressStyle = ["ring", "time"].includes(this._config.progress_style) ? this._config.progress_style : "bar";
+    const timeFormat = ["digital", "text"].includes(this._config.time_format) ? this._config.time_format : "auto";
     const actionLabel = action === ACTION_TURN_ON ? t(this._hass, "turn_on") : t(this._hass, "turn_off");
     const progressLabel = active ? t(this._hass, "remaining") : t(this._hass, "programmed");
-    const progressValue = active ? formatClock(remaining) : formatMinutes(displayMinutes, this._hass);
+    const progressValue = formatTimeValue(active ? remaining : displayMinutes, timeFormat, this._hass, active);
+    const quickTimes = this._quickDurations();
+    const fixedAction = this._fixedAction();
+    const showAction = this._config.show_action_selector && !fixedAction;
+    const customVars = this._colorVariables();
+
+    const header = this._config.show_header ? `
+      <header>
+        <button class="entity-icon" id="more-info" title="${escapeHtml(t(this._hass, "open_more_info"))}" aria-label="${escapeHtml(t(this._hass, "open_more_info"))}">
+          <ha-icon icon="${escapeHtml(icon)}"></ha-icon>
+        </button>
+        <div class="heading">
+          <div class="title">${escapeHtml(title)}</div>
+          <div class="subtitle">${escapeHtml(targetName)}</div>
+        </div>
+        <div class="action-badge"><span class="badge-dot"></span>${escapeHtml(actionLabel)}</div>
+      </header>` : "";
+
+    const targetSection = this._config.show_target_state ? `
+      <button class="target-state" id="target-more-info" aria-label="${escapeHtml(t(this._hass, "open_more_info"))}">
+        <span>${escapeHtml(t(this._hass, "target_state"))}</span>
+        <strong>${escapeHtml(statusLabel(this._hass, targetState))}</strong>
+        <span class="raw-state">${escapeHtml(targetState ?? "unavailable")}</span>
+      </button>` : "";
+
+    const actionSection = showAction ? `
+      <section class="action-section">
+        <div class="section-label">${escapeHtml(t(this._hass, "action"))}</div>
+        <div class="segmented" role="group" aria-label="${escapeHtml(t(this._hass, "action"))}">
+          <button id="turn-on" class="segment segment-on ${action === ACTION_TURN_ON ? "selected" : ""}" ${busy || this._pending ? "disabled" : ""} aria-label="${escapeHtml(t(this._hass, "select_on"))}">
+            <ha-icon icon="mdi:power-plug-outline"></ha-icon><span>${escapeHtml(t(this._hass, "turn_on"))}</span>
+          </button>
+          <button id="turn-off" class="segment segment-off ${action === ACTION_TURN_OFF ? "selected" : ""}" ${busy || this._pending ? "disabled" : ""} aria-label="${escapeHtml(t(this._hass, "select_off"))}">
+            <ha-icon icon="mdi:power-plug-off-outline"></ha-icon><span>${escapeHtml(t(this._hass, "turn_off"))}</span>
+          </button>
+        </div>
+      </section>` : "";
+
+    const durationSection = this._config.show_duration_controls ? `
+      <section class="duration-section">
+        <div class="section-label">${escapeHtml(t(this._hass, "duration"))}</div>
+        <div class="duration-control">
+          <button id="decrement" class="step-button" ${busy || this._pending || displayMinutes <= 1 ? "disabled" : ""} aria-label="${escapeHtml(t(this._hass, "decrement", { value: increment }))}">
+            <ha-icon icon="mdi:minus"></ha-icon><span>${escapeHtml(increment)} min</span>
+          </button>
+          <div class="time-inputs ${busy ? "locked" : ""}">
+            <label><input id="hours" type="number" inputmode="numeric" min="0" max="168" value="${escapeHtml(hours)}" ${busy || this._pending ? "disabled" : ""}><span>${escapeHtml(t(this._hass, "hours"))}</span></label>
+            <div class="time-separator">:</div>
+            <label><input id="minutes" type="number" inputmode="numeric" min="0" max="59" value="${escapeHtml(minutes)}" ${busy || this._pending ? "disabled" : ""}><span>${escapeHtml(t(this._hass, "minutes"))}</span></label>
+          </div>
+          <button id="increment" class="step-button" ${busy || this._pending || displayMinutes >= maxDuration ? "disabled" : ""} aria-label="${escapeHtml(t(this._hass, "increment", { value: increment }))}">
+            <ha-icon icon="mdi:plus"></ha-icon><span>${escapeHtml(increment)} min</span>
+          </button>
+        </div>
+      </section>` : "";
+
+    const quickSection = this._config.show_quick_times && quickTimes.length ? `
+      <section class="quick-section">
+        <div class="section-label">${escapeHtml(t(this._hass, "quick_times"))}</div>
+        <div class="quick-grid">
+          ${quickTimes.map((value) => `<button class="quick-button ${!busy && displayMinutes === value ? "selected" : ""}" data-quick-minutes="${escapeHtml(value)}" ${busy || this._pending ? "disabled" : ""}>${escapeHtml(formatMinutes(value, this._hass))}</button>`).join("")}
+        </div>
+      </section>` : "";
+
+    const progressVisual = this._renderProgress(progressStyle, active, progress, progressValue, progressLabel);
+    const statusBlock = this._config.show_status ? `
+      <div class="status-message ${escapeHtml(statusMessage.type)}">
+        <span class="status-indicator"></span>
+        <div><strong>${escapeHtml(statusMessage.label || (active ? t(this._hass, "active") : t(this._hass, "idle")))}</strong><span>${escapeHtml(statusMessage.text)}</span></div>
+      </div>` : "";
+    const progressSection = progressVisual || statusBlock ? `<section class="progress-section">${progressVisual}${statusBlock}</section>` : "";
+
+    const startStateClass = active || executing ? "timer-active" : canStart ? "start-ready" : "start-disabled";
+    const cancelStateClass = canCancel ? "cancel-ready" : "inactive-state";
+    const footer = `
+      <footer>
+        <button id="start" class="primary-action ${startStateClass}" ${canStart ? "" : "disabled"}>
+          <ha-icon icon="${active || executing ? "mdi:timer-sand" : "mdi:play"}"></ha-icon>
+          <span>${escapeHtml(active || executing ? t(this._hass, "timer_on") : t(this._hass, "start"))}</span>
+        </button>
+        <button id="cancel" class="cancel-action ${cancelStateClass}" ${canCancel ? "" : "disabled"}>
+          <ha-icon icon="${canCancel ? "mdi:close-circle-outline" : "mdi:timer-off-outline"}"></ha-icon>
+          <span>${escapeHtml(canCancel ? t(this._hass, "cancel") : t(this._hass, "inactive"))}</span>
+        </button>
+      </footer>`;
 
     this.shadowRoot.innerHTML = `
       ${this._styles()}
-      <ha-card class="timer-card ${layoutClass} action-${escapeHtml(action)} status-${escapeHtml(status.state)}">
+      <ha-card style="${escapeHtml(customVars)}" class="timer-card ${layoutClass} style-${visualStyle} progress-${progressStyle} action-${escapeHtml(action)} status-${escapeHtml(status.state)}">
         <div class="accent"></div>
-        <div class="content">
-          <header>
-            <button class="entity-icon" id="more-info" title="${escapeHtml(t(this._hass, "open_more_info"))}" aria-label="${escapeHtml(t(this._hass, "open_more_info"))}">
-              <ha-icon icon="${escapeHtml(icon)}"></ha-icon>
-            </button>
-            <div class="heading">
-              <div class="title">${escapeHtml(title)}</div>
-              <div class="subtitle">${escapeHtml(targetName)}</div>
-            </div>
-            <div class="action-badge"><span class="badge-dot"></span>${escapeHtml(actionLabel)}</div>
-          </header>
-
-          ${this._config.show_target_state ? `
-            <button class="target-state" id="target-more-info" aria-label="${escapeHtml(t(this._hass, "open_more_info"))}">
-              <span>${escapeHtml(t(this._hass, "target_state"))}</span>
-              <strong>${escapeHtml(statusLabel(this._hass, targetState))}</strong>
-              <span class="raw-state">${escapeHtml(targetState ?? "unavailable")}</span>
-            </button>` : ""}
-
-          <section class="action-section">
-            <div class="section-label">${escapeHtml(t(this._hass, "action"))}</div>
-            <div class="segmented" role="group" aria-label="${escapeHtml(t(this._hass, "action"))}">
-              <button id="turn-on" class="segment ${action === ACTION_TURN_ON ? "selected" : ""}" ${busy || this._pending ? "disabled" : ""} aria-label="${escapeHtml(t(this._hass, "select_on"))}">
-                <ha-icon icon="mdi:power-plug-outline"></ha-icon><span>${escapeHtml(t(this._hass, "turn_on"))}</span>
-              </button>
-              <button id="turn-off" class="segment ${action === ACTION_TURN_OFF ? "selected" : ""}" ${busy || this._pending ? "disabled" : ""} aria-label="${escapeHtml(t(this._hass, "select_off"))}">
-                <ha-icon icon="mdi:power-plug-off-outline"></ha-icon><span>${escapeHtml(t(this._hass, "turn_off"))}</span>
-              </button>
-            </div>
-          </section>
-
-          <section class="duration-section">
-            <div class="section-label">${escapeHtml(t(this._hass, "duration"))}</div>
-            <div class="duration-control">
-              <button id="decrement" class="step-button" ${busy || this._pending || displayMinutes <= 1 ? "disabled" : ""} aria-label="${escapeHtml(t(this._hass, "decrement", { value: increment }))}">
-                <ha-icon icon="mdi:minus"></ha-icon><span>${escapeHtml(increment)} min</span>
-              </button>
-              <div class="time-inputs ${busy ? "locked" : ""}">
-                <label><input id="hours" type="number" inputmode="numeric" min="0" max="168" value="${escapeHtml(hours)}" ${busy || this._pending ? "disabled" : ""}><span>${escapeHtml(t(this._hass, "hours"))}</span></label>
-                <div class="time-separator">:</div>
-                <label><input id="minutes" type="number" inputmode="numeric" min="0" max="59" value="${escapeHtml(minutes)}" ${busy || this._pending ? "disabled" : ""}><span>${escapeHtml(t(this._hass, "minutes"))}</span></label>
-              </div>
-              <button id="increment" class="step-button" ${busy || this._pending || displayMinutes >= maxDuration ? "disabled" : ""} aria-label="${escapeHtml(t(this._hass, "increment", { value: increment }))}">
-                <ha-icon icon="mdi:plus"></ha-icon><span>${escapeHtml(increment)} min</span>
-              </button>
-            </div>
-          </section>
-
-          <section class="progress-section">
-            <div class="progress-heading"><span>${escapeHtml(progressLabel)}</span><strong>${escapeHtml(progressValue)}</strong></div>
-            <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${escapeHtml(active ? Math.round(progress) : 0)}">
-              <div class="progress-fill" style="width:${escapeHtml(active ? progress : 0)}%"></div>
-            </div>
-            <div class="status-message ${escapeHtml(statusMessage.type)}">
-              <span class="status-indicator"></span>
-              <div><strong>${escapeHtml(statusMessage.label || (active ? t(this._hass, "active") : t(this._hass, "idle")))}</strong><span>${escapeHtml(statusMessage.text)}</span></div>
-            </div>
-          </section>
-
-          <footer>
-            <button id="start" class="primary-action" ${canStart ? "" : "disabled"}>
-              <ha-icon icon="${active ? "mdi:timer-sand" : "mdi:play"}"></ha-icon>
-              <span>${escapeHtml(active || executing ? t(this._hass, "timer_on") : t(this._hass, "start"))}</span>
-            </button>
-            <button id="cancel" class="cancel-action" ${canCancel ? "" : "disabled"}>
-              <ha-icon icon="${canCancel ? "mdi:close-circle-outline" : "mdi:timer-off-outline"}"></ha-icon>
-              <span>${escapeHtml(canCancel ? t(this._hass, "cancel") : t(this._hass, "inactive"))}</span>
-            </button>
-          </footer>
-        </div>
+        <div class="content">${header}${targetSection}${actionSection}${durationSection}${quickSection}${progressSection}${footer}</div>
       </ha-card>`;
 
     this._bindEvents();
@@ -695,6 +1031,9 @@ class SmartEntityTimerCard extends HTMLElement {
     byId("increment")?.addEventListener("click", () => this._adjustDuration(1));
     byId("start")?.addEventListener("click", () => this._start());
     byId("cancel")?.addEventListener("click", () => this._cancel());
+    this.shadowRoot?.querySelectorAll?.("[data-quick-minutes]")?.forEach((button) => {
+      button.addEventListener("click", () => this._setDuration(Number(button.dataset.quickMinutes)));
+    });
 
     const hours = byId("hours");
     const minutes = byId("minutes");
@@ -715,16 +1054,11 @@ class SmartEntityTimerCard extends HTMLElement {
   _showMoreInfo() {
     const entityId = this._statusState()?.attributes?.target_entity;
     if (!entityId) return;
-    const event = new CustomEvent("hass-more-info", {
-      bubbles: true,
-      composed: true,
-      detail: { entityId },
-    });
-    this.dispatchEvent(event);
+    this.dispatchEvent(new CustomEvent("hass-more-info", { bubbles: true, composed: true, detail: { entityId } }));
   }
 
   async _setAction(action) {
-    if (![ACTION_TURN_ON, ACTION_TURN_OFF].includes(action)) return;
+    if (![ACTION_TURN_ON, ACTION_TURN_OFF].includes(action) || this._fixedAction()) return;
     const status = this._statusState();
     const baseline = status?.last_updated || status?.last_changed || "";
     this._draftAction = action;
@@ -733,10 +1067,7 @@ class SmartEntityTimerCard extends HTMLElement {
     this._errorMessage = undefined;
     this._render();
     try {
-      await this._hass.callService(DOMAIN, "set_values", {
-        entity_id: this._config.entity,
-        end_action: action,
-      });
+      await this._hass.callService(DOMAIN, "set_values", { entity_id: this._config.entity, end_action: action });
     } catch (error) {
       this._pendingAction = undefined;
       this._showServiceError(error);
@@ -759,10 +1090,7 @@ class SmartEntityTimerCard extends HTMLElement {
     this._errorMessage = undefined;
     this._render();
     try {
-      await this._hass.callService(DOMAIN, "set_values", {
-        entity_id: this._config.entity,
-        duration_minutes: value,
-      });
+      await this._hass.callService(DOMAIN, "set_values", { entity_id: this._config.entity, duration_minutes: value });
     } catch (error) {
       this._pendingDuration = undefined;
       this._showServiceError(error);
@@ -786,6 +1114,10 @@ class SmartEntityTimerCard extends HTMLElement {
     this._errorMessage = undefined;
     this._render();
     try {
+      const fixedAction = this._fixedAction();
+      if (fixedAction && this._backendAction() !== fixedAction) {
+        await this._hass.callService(DOMAIN, "set_values", { entity_id: this._config.entity, end_action: fixedAction });
+      }
       await this._hass.callService(DOMAIN, "start", { entity_id: this._config.entity });
     } catch (error) {
       this._showServiceError(error);
@@ -822,36 +1154,43 @@ class SmartEntityTimerCard extends HTMLElement {
     return `<style>
       :host {
         display: block;
-        --set-accent-on: var(--success-color, #2eaf68);
-        --set-accent-off: var(--warning-color, #e8843d);
+        container-type: inline-size;
+      }
+      .timer-card {
+        /*
+         * Custom colors are written inline on this ha-card element.
+         * Resolve all derived variables at the same scope so values chosen
+         * in the visual editor are visible to the complete card subtree.
+         */
+        --set-accent-on: var(--set-custom-on, var(--success-color, #2eaf68));
+        --set-accent-off: var(--set-custom-off, var(--warning-color, #e8843d));
         --set-accent: var(--set-accent-off);
+        --set-start-color: var(--set-custom-start, var(--set-accent));
+        --set-timer-active-color: var(--set-custom-timer-active, var(--primary-color, var(--set-accent)));
+        --set-cancel-color: var(--set-custom-cancel, var(--error-color, #db4437));
+        --set-inactive-color: var(--set-custom-inactive, var(--secondary-text-color));
+        --set-progress-color: var(--set-custom-progress, var(--set-accent));
+        --set-quick-color: var(--set-custom-quick, var(--primary-text-color));
+        --set-quick-selected-color: var(--set-custom-quick-selected, var(--set-accent));
         --set-surface: color-mix(in srgb, var(--primary-text-color) 5%, transparent);
         --set-border: color-mix(in srgb, var(--primary-text-color) 12%, transparent);
         --set-muted: var(--secondary-text-color);
-        container-type: inline-size;
       }
       * { box-sizing: border-box; }
       ha-card {
-        position: relative;
-        overflow: hidden;
-        color: var(--primary-text-color);
+        position: relative; overflow: hidden; color: var(--primary-text-color);
         background: var(--ha-card-background, var(--card-background-color));
         border-radius: var(--ha-card-border-radius, 16px);
         border: var(--ha-card-border-width, 0) solid var(--ha-card-border-color, transparent);
-        box-shadow: var(--ha-card-box-shadow, var(--material-shadow-elevation-2dp));
       }
       .action-turn_on { --set-accent: var(--set-accent-on); }
       .action-turn_off { --set-accent: var(--set-accent-off); }
-      .accent {
-        height: 5px;
-        background: linear-gradient(90deg, var(--set-accent), var(--primary-color));
-      }
-      .content { padding: 18px; display: grid; gap: 16px; }
-      header { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; }
+      .accent { height: 4px; background: linear-gradient(90deg, var(--set-accent), var(--set-progress-color)); }
+      .content { display: grid; gap: 16px; padding: 18px; }
+      header { display: grid; grid-template-columns: auto minmax(0,1fr) auto; align-items: center; gap: 12px; }
       .entity-icon {
-        width: 48px; height: 48px; border: 0; border-radius: 15px; cursor: pointer;
-        display: grid; place-items: center; color: var(--set-accent);
-        background: color-mix(in srgb, var(--set-accent) 14%, transparent);
+        width: 46px; height: 46px; border: 0; border-radius: 14px; cursor: pointer; color: var(--set-accent);
+        background: color-mix(in srgb, var(--set-accent) 13%, transparent); display: grid; place-items: center;
       }
       .entity-icon ha-icon { --mdc-icon-size: 27px; }
       .heading { min-width: 0; }
@@ -874,10 +1213,12 @@ class SmartEntityTimerCard extends HTMLElement {
       .section-label { color: var(--set-muted); font-size: .78rem; font-weight: 650; letter-spacing: .02em; }
       .segmented { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 5px; border-radius: 14px; background: var(--set-surface); border: 1px solid var(--set-border); }
       .segment {
-        border: 0; min-height: 44px; border-radius: 10px; background: transparent; color: var(--set-muted); cursor: pointer;
+        border: 1px solid transparent; min-height: 44px; border-radius: 10px; background: transparent; color: var(--set-muted); cursor: pointer;
         display: flex; align-items: center; justify-content: center; gap: 8px; font: inherit; font-size: .9rem; font-weight: 650; transition: .18s ease;
       }
-      .segment.selected { background: var(--ha-card-background, var(--card-background-color)); color: var(--set-accent); box-shadow: 0 3px 12px color-mix(in srgb, black 12%, transparent); }
+      .segment.selected { background: var(--ha-card-background, var(--card-background-color)); box-shadow: 0 3px 12px color-mix(in srgb, black 12%, transparent); }
+      .segment-on.selected { color: var(--set-accent-on); border: 1px solid color-mix(in srgb, var(--set-accent-on) 35%, transparent); }
+      .segment-off.selected { color: var(--set-accent-off); border: 1px solid color-mix(in srgb, var(--set-accent-off) 35%, transparent); }
       .segment:disabled { cursor: default; opacity: .65; }
       .duration-control { display: grid; grid-template-columns: minmax(88px, 1fr) minmax(150px, 1.45fr) minmax(88px, 1fr); gap: 10px; align-items: stretch; }
       .step-button {
@@ -900,12 +1241,29 @@ class SmartEntityTimerCard extends HTMLElement {
       .time-inputs label span { color: var(--set-muted); font-size: .67rem; font-weight: 650; }
       .time-separator { font-size: 1.5rem; font-weight: 800; color: var(--set-accent); align-self: start; padding-top: 2px; }
       .time-inputs.locked { opacity: .75; }
-      .progress-section { padding: 13px; border: 1px solid var(--set-border); background: var(--set-surface); border-radius: 15px; }
+      .quick-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+      .quick-button {
+        border: 1px solid color-mix(in srgb, var(--set-quick-color) 34%, var(--set-border)); border-radius: 999px; padding: 8px 12px;
+        background: color-mix(in srgb, var(--set-quick-color) 7%, transparent); color: var(--set-quick-color);
+        font: inherit; font-size: .78rem; font-weight: 650; cursor: pointer; transition: .15s ease;
+      }
+      .quick-button.selected { color: var(--set-quick-selected-color); border-color: color-mix(in srgb, var(--set-quick-selected-color) 64%, var(--set-border)); background: color-mix(in srgb, var(--set-quick-selected-color) 15%, transparent); }
+      .progress-section { padding: 13px; border: 1px solid var(--set-border); background: var(--set-surface); border-radius: 15px; gap: 10px; }
       .progress-heading { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
-      .progress-heading span { color: var(--set-muted); font-size: .8rem; }
-      .progress-heading strong { font-variant-numeric: tabular-nums; font-size: 1.05rem; letter-spacing: .02em; }
+      .progress-heading span, .time-mode span, .ring-center span { color: var(--set-muted); font-size: .8rem; }
+      .progress-heading strong { color: var(--set-progress-color); font-variant-numeric: tabular-nums; font-size: 1.05rem; letter-spacing: .02em; }
       .progress-track { height: 9px; overflow: hidden; border-radius: 999px; background: color-mix(in srgb, var(--primary-text-color) 10%, transparent); }
-      .progress-fill { height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--set-accent), var(--primary-color)); transition: width .35s linear; }
+      .progress-fill { height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--set-progress-color), color-mix(in srgb, var(--set-progress-color) 65%, var(--primary-color))); transition: width .35s linear; }
+      .ring-mode { display: grid; place-items: center; padding: 4px 0; }
+      .ring-wrap { position: relative; width: min(160px, 52vw); aspect-ratio: 1; }
+      .ring-wrap svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+      .ring-wrap circle { fill: none; stroke-width: 9; }
+      .ring-track { stroke: color-mix(in srgb, var(--primary-text-color) 10%, transparent); }
+      .ring-value { stroke: var(--set-progress-color); stroke-linecap: round; transition: stroke-dasharray .35s linear; }
+      .ring-center { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 3px; text-align: center; }
+      .ring-center strong { max-width: 120px; color: var(--set-progress-color); font-size: 1.16rem; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+      .time-mode { min-height: 72px; display: grid; place-content: center; justify-items: center; gap: 4px; text-align: center; }
+      .time-mode strong { color: var(--set-progress-color); font-size: 1.7rem; font-variant-numeric: tabular-nums; letter-spacing: .02em; }
       .status-message { display: grid; grid-template-columns: auto 1fr; gap: 9px; align-items: start; padding-top: 2px; }
       .status-indicator { width: 8px; height: 8px; margin-top: 5px; border-radius: 50%; background: var(--set-muted); }
       .status-message > div { display: grid; gap: 1px; min-width: 0; }
@@ -920,10 +1278,14 @@ class SmartEntityTimerCard extends HTMLElement {
         min-height: 48px; border-radius: 13px; border: 1px solid transparent; cursor: pointer; display: flex; align-items: center; justify-content: center;
         gap: 8px; font: inherit; font-size: .9rem; font-weight: 720; transition: transform .12s ease, opacity .12s ease;
       }
-      footer button:not(:disabled):active, .step-button:not(:disabled):active, .segment:not(:disabled):active { transform: scale(.98); }
-      .primary-action { color: var(--text-primary-color, white); background: linear-gradient(135deg, var(--set-accent), color-mix(in srgb, var(--set-accent) 65%, var(--primary-color))); box-shadow: 0 6px 18px color-mix(in srgb, var(--set-accent) 23%, transparent); }
-      .cancel-action { color: var(--error-color, #db4437); border-color: color-mix(in srgb, var(--error-color, #db4437) 30%, transparent); background: color-mix(in srgb, var(--error-color, #db4437) 8%, transparent); }
-      footer button:disabled { box-shadow: none; filter: grayscale(.25); }
+      footer button:not(:disabled):active, .step-button:not(:disabled):active, .segment:not(:disabled):active, .quick-button:not(:disabled):active { transform: scale(.98); }
+      .primary-action.start-ready { color: white; background: linear-gradient(135deg, var(--set-start-color), color-mix(in srgb, var(--set-start-color) 68%, black)); box-shadow: 0 6px 18px color-mix(in srgb, var(--set-start-color) 25%, transparent); }
+      .primary-action.timer-active { color: white; background: var(--set-timer-active-color); border-color: color-mix(in srgb, var(--set-timer-active-color) 75%, transparent); }
+      .primary-action.start-disabled { color: var(--set-inactive-color); background: color-mix(in srgb, var(--set-inactive-color) 9%, transparent); border-color: color-mix(in srgb, var(--set-inactive-color) 24%, transparent); }
+      .cancel-action.cancel-ready { color: white; border-color: var(--set-cancel-color); background: var(--set-cancel-color); }
+      .cancel-action.inactive-state { color: var(--set-inactive-color); border-color: color-mix(in srgb, var(--set-inactive-color) 24%, transparent); background: color-mix(in srgb, var(--set-inactive-color) 8%, transparent); }
+      footer button:disabled { box-shadow: none; filter: none; opacity: .62; }
+      .primary-action.timer-active:disabled { opacity: .88; }
       .setup { min-height: 180px; padding: 26px; display: grid; gap: 10px; place-content: center; justify-items: center; text-align: center; color: var(--secondary-text-color); }
       .setup strong { color: var(--primary-text-color); font-size: 1rem; }
       .setup-icon { font-size: 2rem; }
@@ -931,6 +1293,52 @@ class SmartEntityTimerCard extends HTMLElement {
       .error-panel strong { color: var(--error-color); }
       .spinner { width: 28px; height: 28px; border: 3px solid var(--set-border); border-top-color: var(--primary-color); border-radius: 50%; animation: spin .8s linear infinite; }
       @keyframes spin { to { transform: rotate(360deg); } }
+
+      /* Flat: solid colors, visible borders, no elevation or gradients. */
+      .style-flat { box-shadow: none; border: 1px solid var(--set-border); border-radius: 10px; }
+      .style-flat .accent { height: 3px; background: var(--set-accent); }
+      .style-flat .entity-icon, .style-flat .target-state, .style-flat .segmented, .style-flat .step-button, .style-flat .time-inputs, .style-flat .quick-button, .style-flat .progress-section {
+        box-shadow: none; background: transparent; border-radius: 8px;
+      }
+      .style-flat .segment.selected { box-shadow: none; color: white; }
+      .style-flat .segment-on.selected { background: var(--set-accent-on); border-color: var(--set-accent-on); }
+      .style-flat .segment-off.selected { background: var(--set-accent-off); border-color: var(--set-accent-off); }
+      .style-flat .primary-action.start-ready { background: var(--set-start-color); box-shadow: none; }
+      .style-flat .primary-action.timer-active { background: var(--set-timer-active-color); }
+      .style-flat .progress-fill { background: var(--set-progress-color); }
+      .style-flat .quick-button.selected { color: white; background: var(--set-quick-selected-color); border-color: var(--set-quick-selected-color); }
+
+      /* Minimal: remove decorative containers and keep only essential visual hierarchy. */
+      .style-minimal { border-radius: var(--ha-card-border-radius, 10px); box-shadow: none; }
+      .style-minimal .accent { display: none; }
+      .style-minimal .content { padding: 11px 13px; gap: 10px; }
+      .style-minimal .entity-icon { width: 36px; height: 36px; border-radius: 8px; background: transparent; }
+      .style-minimal .entity-icon ha-icon { --mdc-icon-size: 23px; }
+      .style-minimal .title { font-size: 1rem; }
+      .style-minimal .subtitle { font-size: .74rem; }
+      .style-minimal .action-badge { padding: 4px 7px; font-size: .65rem; background: transparent; border: 1px solid currentColor; }
+      .style-minimal .target-state { border: 0; border-bottom: 1px solid var(--set-border); border-radius: 0; background: transparent; padding: 6px 0 8px; }
+      .style-minimal .section-label { font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; }
+      .style-minimal .segmented { padding: 0; gap: 12px; border: 0; border-radius: 0; background: transparent; }
+      .style-minimal .segment { min-height: 36px; border-radius: 0; border-bottom: 2px solid transparent; }
+      .style-minimal .segment.selected { background: transparent; box-shadow: none; }
+      .style-minimal .segment-on.selected { border: 0; border-bottom: 2px solid var(--set-accent-on); color: var(--set-accent-on); }
+      .style-minimal .segment-off.selected { border: 0; border-bottom: 2px solid var(--set-accent-off); color: var(--set-accent-off); }
+      .style-minimal .duration-control { gap: 6px; }
+      .style-minimal .step-button { min-height: 48px; border: 0; border-radius: 6px; background: transparent; }
+      .style-minimal .time-inputs { min-height: 48px; border: 0; border-bottom: 2px solid var(--set-accent); border-radius: 0; background: transparent; padding: 4px 8px; }
+      .style-minimal .time-inputs input { font-size: 1.45rem; }
+      .style-minimal .quick-grid { gap: 10px; }
+      .style-minimal .quick-button { padding: 5px 3px; border: 0; border-bottom: 2px solid color-mix(in srgb, var(--set-quick-color) 35%, transparent); border-radius: 0; background: transparent; }
+      .style-minimal .quick-button.selected { background: transparent; border-bottom-color: var(--set-quick-selected-color); color: var(--set-quick-selected-color); }
+      .style-minimal .progress-section { padding: 4px 0; border: 0; border-radius: 0; background: transparent; }
+      .style-minimal .progress-track { height: 6px; }
+      .style-minimal .progress-fill { background: var(--set-progress-color); }
+      .style-minimal footer { gap: 7px; }
+      .style-minimal footer button { min-height: 40px; border-radius: 7px; }
+      .style-minimal .primary-action.start-ready { background: var(--set-start-color); box-shadow: none; }
+      .style-minimal .status-message.active .status-indicator, .style-minimal .status-message.ready .status-indicator { box-shadow: none; }
+
       @container (max-width: 410px) {
         .content { padding: 15px; gap: 14px; }
         header { grid-template-columns: auto minmax(0,1fr); }
@@ -950,24 +1358,19 @@ class SmartEntityTimerCard extends HTMLElement {
   }
 }
 
-if (!customElements.get("smart-entity-timer-card")) {
-  customElements.define("smart-entity-timer-card", SmartEntityTimerCard);
-}
+if (!customElements.get("smart-entity-timer-card")) customElements.define("smart-entity-timer-card", SmartEntityTimerCard);
 
 window.customCards = window.customCards || [];
 if (!window.customCards.some((card) => card.type === "smart-entity-timer-card")) {
   window.customCards.push({
     type: "smart-entity-timer-card",
     name: "Smart Entity Timer Card",
-    description: "A visual timer card for the Smart Entity Timer integration.",
+    description: "A configurable visual timer card for the Smart Entity Timer integration.",
     preview: false,
     documentationURL: "https://github.com/abel-smart-timer/smart-entity-timer-card",
     getEntitySuggestion: (hass, entityId) => {
       const state = hass?.states?.[entityId];
-      const compatible =
-        entityDomain(entityId) === "sensor" &&
-        Number(state?.attributes?.card_api_version) >= MIN_CARD_API_VERSION &&
-        Boolean(state?.attributes?.backend_version);
+      const compatible = entityDomain(entityId) === "sensor" && Number(state?.attributes?.card_api_version) >= MIN_CARD_API_VERSION && Boolean(state?.attributes?.backend_version);
       if (!compatible) return null;
       return {
         config: {
@@ -975,7 +1378,17 @@ if (!window.customCards.some((card) => card.type === "smart-entity-timer-card"))
           entity: entityId,
           increment_minutes: 30,
           layout: "auto",
+          visual_style: "modern",
+          action_mode: "selectable",
+          progress_style: "bar",
+          time_format: "auto",
+          show_header: true,
           show_target_state: true,
+          show_action_selector: true,
+          show_duration_controls: true,
+          show_quick_times: true,
+          show_progress: true,
+          show_status: true,
           show_last_result: true,
         },
       };
@@ -989,4 +1402,12 @@ console.info(
   "color: #5c4bdb; background: #eeeafd; font-weight: 700; padding: 3px 5px; border-radius: 0 4px 4px 0;",
 );
 
-export { CARD_VERSION, SmartEntityTimerCard, formatClock, targetReached };
+export {
+  CARD_VERSION,
+  SmartEntityTimerCard,
+  formatClock,
+  formatTimeValue,
+  normalizeColor,
+  parseQuickTimes,
+  targetReached,
+};

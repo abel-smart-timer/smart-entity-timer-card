@@ -1,30 +1,50 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="920" height="560" viewBox="0 0 920 560">
-  <defs>
-    <linearGradient id="accent" x1="0" x2="1"><stop stop-color="#ea7c3c"/><stop offset="1" stop-color="#6254d9"/></linearGradient>
-    <filter id="shadow"><feDropShadow dx="0" dy="10" stdDeviation="18" flood-opacity=".18"/></filter>
-  </defs>
-  <rect width="920" height="560" fill="#eef0f5"/>
-  <rect x="150" y="42" width="620" height="476" rx="22" fill="#fff" filter="url(#shadow)"/>
-  <path d="M172 42h576a22 22 0 0 1 22 22v0H150v0a22 22 0 0 1 22-22z" fill="url(#accent)"/>
-  <rect x="176" y="76" width="54" height="54" rx="17" fill="#fff1e9"/>
-  <text x="203" y="111" text-anchor="middle" font-size="30">⏱</text>
-  <text x="248" y="98" font-family="Arial" font-size="20" font-weight="700" fill="#24252b">Luz del baño</text>
-  <text x="248" y="119" font-family="Arial" font-size="13" fill="#787b86">Luz del baño</text>
-  <rect x="620" y="86" width="122" height="32" rx="16" fill="#fff1e9"/>
-  <circle cx="638" cy="102" r="5" fill="#ea7c3c"/><text x="651" y="107" font-family="Arial" font-size="12" font-weight="700" fill="#d5682e">APAGAR</text>
-  <text x="176" y="166" font-family="Arial" font-size="12" fill="#777b86">ACCIÓN AL FINALIZAR</text>
-  <rect x="176" y="178" width="566" height="58" rx="15" fill="#f3f4f7" stroke="#e0e2e8"/>
-  <rect x="466" y="184" width="270" height="46" rx="11" fill="#fff"/>
-  <text x="320" y="213" text-anchor="middle" font-family="Arial" font-size="15" fill="#777b86">⚡ Encender</text>
-  <text x="601" y="213" text-anchor="middle" font-family="Arial" font-size="15" font-weight="700" fill="#df7135">⊘ Apagar</text>
-  <text x="176" y="269" font-family="Arial" font-size="12" fill="#777b86">DURACIÓN</text>
-  <rect x="176" y="281" width="150" height="72" rx="15" fill="#f5f5f7" stroke="#e0e2e8"/><text x="251" y="314" text-anchor="middle" font-size="24" fill="#df7135">−</text><text x="251" y="337" text-anchor="middle" font-family="Arial" font-size="11" fill="#777b86">30 min</text>
-  <rect x="336" y="281" width="246" height="72" rx="15" fill="#fff8f4" stroke="#eda57e"/><text x="459" y="326" text-anchor="middle" font-family="Arial" font-size="31" font-weight="700" fill="#292a30">02 : 00</text><text x="414" y="345" text-anchor="middle" font-family="Arial" font-size="10" fill="#777b86">h</text><text x="507" y="345" text-anchor="middle" font-family="Arial" font-size="10" fill="#777b86">min</text>
-  <rect x="592" y="281" width="150" height="72" rx="15" fill="#f5f5f7" stroke="#e0e2e8"/><text x="667" y="314" text-anchor="middle" font-size="24" fill="#df7135">+</text><text x="667" y="337" text-anchor="middle" font-family="Arial" font-size="11" fill="#777b86">30 min</text>
-  <rect x="176" y="370" width="566" height="76" rx="15" fill="#f5f5f7" stroke="#e0e2e8"/>
-  <text x="192" y="394" font-family="Arial" font-size="12" fill="#777b86">TIEMPO RESTANTE</text><text x="724" y="394" text-anchor="end" font-family="Arial" font-size="17" font-weight="700" fill="#292a30">01:27:42</text>
-  <rect x="192" y="407" width="534" height="9" rx="5" fill="#dde0e6"/><rect x="192" y="407" width="212" height="9" rx="5" fill="url(#accent)"/>
-  <circle cx="196" cy="431" r="4" fill="#df7135"/><text x="208" y="435" font-family="Arial" font-size="11" fill="#777b86">Temporizador activo</text>
-  <rect x="176" y="462" width="340" height="42" rx="13" fill="#c9c9cf"/><text x="346" y="488" text-anchor="middle" font-family="Arial" font-size="14" font-weight="700" fill="#fff">TIMER ON</text>
-  <rect x="526" y="462" width="216" height="42" rx="13" fill="#fff1f1" stroke="#e59191"/><text x="634" y="488" text-anchor="middle" font-family="Arial" font-size="14" font-weight="700" fill="#d74c4c">CANCELAR</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720">
+  <rect width="1200" height="720" rx="32" fill="#111827"/>
+  <text x="70" y="78" fill="#f8fafc" font-family="Arial,sans-serif" font-size="34" font-weight="700">Smart Entity Timer Card 0.2.2</text>
+  <text x="70" y="115" fill="#94a3b8" font-family="Arial,sans-serif" font-size="18">Optional personalization · Card API v2</text>
+  <g transform="translate(70,155)">
+    <rect width="650" height="500" rx="24" fill="#1f2937" stroke="#374151"/>
+    <rect width="650" height="6" rx="3" fill="#f59e0b"/>
+    <circle cx="58" cy="62" r="25" fill="#4b3421"/>
+    <text x="101" y="58" fill="#f8fafc" font-family="Arial,sans-serif" font-size="25" font-weight="700">Luz del baño</text>
+    <text x="101" y="82" fill="#9ca3af" font-family="Arial,sans-serif" font-size="15">light.luz_del_bano</text>
+    <rect x="515" y="42" width="105" height="34" rx="17" fill="#4b3421"/>
+    <text x="542" y="64" fill="#f59e0b" font-family="Arial,sans-serif" font-size="14" font-weight="700">APAGAR</text>
+    <text x="30" y="135" fill="#9ca3af" font-family="Arial,sans-serif" font-size="14">Acción al finalizar</text>
+    <rect x="30" y="150" width="590" height="58" rx="15" fill="#283343"/>
+    <rect x="328" y="156" width="285" height="46" rx="11" fill="#374151"/>
+    <text x="135" y="185" fill="#9ca3af" font-family="Arial,sans-serif" font-size="17">Encender</text>
+    <text x="430" y="185" fill="#f59e0b" font-family="Arial,sans-serif" font-size="17" font-weight="700">Apagar</text>
+    <text x="30" y="248" fill="#9ca3af" font-family="Arial,sans-serif" font-size="14">Duración</text>
+    <rect x="30" y="264" width="150" height="72" rx="15" fill="#283343"/>
+    <rect x="196" y="264" width="258" height="72" rx="15" fill="#322c24" stroke="#8d6325"/>
+    <rect x="470" y="264" width="150" height="72" rx="15" fill="#283343"/>
+    <text x="82" y="295" fill="#f8fafc" font-family="Arial,sans-serif" font-size="25">−</text>
+    <text x="73" y="319" fill="#9ca3af" font-family="Arial,sans-serif" font-size="12">30 min</text>
+    <text x="254" y="307" fill="#f8fafc" font-family="Arial,sans-serif" font-size="30" font-weight="700">02 : 00</text>
+    <text x="531" y="295" fill="#f8fafc" font-family="Arial,sans-serif" font-size="25">+</text>
+    <text x="519" y="319" fill="#9ca3af" font-family="Arial,sans-serif" font-size="12">30 min</text>
+    <text x="30" y="374" fill="#9ca3af" font-family="Arial,sans-serif" font-size="14">Duraciones rápidas</text>
+    <g fill="#283343" stroke="#485569">
+      <rect x="30" y="390" width="115" height="38" rx="19"/><rect x="157" y="390" width="115" height="38" rx="19"/><rect x="284" y="390" width="115" height="38" rx="19"/><rect x="411" y="390" width="115" height="38" rx="19"/>
+    </g>
+    <g fill="#e5e7eb" font-family="Arial,sans-serif" font-size="13">
+      <text x="63" y="414">15 min</text><text x="190" y="414">30 min</text><text x="322" y="414">1 h</text><text x="449" y="414">2 h</text>
+    </g>
+    <rect x="30" y="451" width="374" height="52" rx="14" fill="#f59e0b"/>
+    <rect x="417" y="451" width="203" height="52" rx="14" fill="#3b2227" stroke="#7f3942"/>
+    <text x="186" y="484" fill="white" font-family="Arial,sans-serif" font-size="17" font-weight="700">Iniciar</text>
+    <text x="486" y="484" fill="#f87171" font-family="Arial,sans-serif" font-size="17" font-weight="700">Inactivo</text>
+  </g>
+  <g transform="translate(785,220)">
+    <rect width="345" height="370" rx="24" fill="#1f2937" stroke="#374151"/>
+    <rect width="345" height="5" rx="3" fill="#3b82f6"/>
+    <text x="28" y="54" fill="#f8fafc" font-family="Arial,sans-serif" font-size="22" font-weight="700">Progreso circular</text>
+    <circle cx="172" cy="185" r="82" fill="none" stroke="#334155" stroke-width="12"/>
+    <circle cx="172" cy="185" r="82" fill="none" stroke="#3b82f6" stroke-width="12" stroke-linecap="round" stroke-dasharray="330 515" transform="rotate(-90 172 185)"/>
+    <text x="117" y="183" fill="#f8fafc" font-family="Arial,sans-serif" font-size="24" font-weight="700">01:14:22</text>
+    <text x="125" y="210" fill="#94a3b8" font-family="Arial,sans-serif" font-size="13">Tiempo restante</text>
+    <text x="28" y="315" fill="#94a3b8" font-family="Arial,sans-serif" font-size="15">Moderno · Plano · Minimalista</text>
+    <text x="28" y="342" fill="#94a3b8" font-family="Arial,sans-serif" font-size="15">Colores heredados o personalizados</text>
+  </g>
 </svg>
