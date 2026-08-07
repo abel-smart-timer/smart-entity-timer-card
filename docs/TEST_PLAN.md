@@ -1,6 +1,6 @@
-# Smart Entity Timer Card 0.1.0 test plan
+# Smart Entity Timer Card 0.1.1 test plan
 
-Use Smart Entity Timer integration 0.1.2 or newer.
+Use Smart Entity Timer integration 0.1.3 or newer.
 
 ## Installation
 
@@ -51,3 +51,15 @@ Use Smart Entity Timer integration 0.1.2 or newer.
 - [ ] Light theme is readable.
 - [ ] Dark theme is readable.
 - [ ] Sections view can resize the card without clipping controls.
+
+
+## Cross-panel synchronization
+
+1. Open the same timer card in two browsers or devices.
+2. Change duration in the first.
+3. Verify the second follows the status sensor value.
+4. Change action in the second.
+5. Verify the first follows it.
+6. Confirm no reload is required.
+
+Expected: both cards converge on backend values and no entity-registry query is required.

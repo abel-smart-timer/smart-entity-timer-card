@@ -1,6 +1,6 @@
 {
   "name": "smart-entity-timer-card",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Visual dashboard card for the Smart Entity Timer Home Assistant integration",
   "type": "module",
   "private": true,

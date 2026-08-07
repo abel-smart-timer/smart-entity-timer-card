@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.1.1 — 2026-08-06
+
+Synchronization and backend-contract stabilization release.
+
+- Requires Smart Entity Timer 0.1.3 / Card API v2.
+- Uses `smart_entity_timer.set_values` for duration and action changes.
+- Removes entity-registry discovery and the global entity-registry cache.
+- Removes persistent duration/action dirty flags that could desynchronize multiple panels.
+- Reconciles short-lived pending UI values with the authoritative status sensor.
+- Removes manual companion-entity overrides from the card editor.
+- Uses backend constraints for maximum duration.
+- Adds cross-card and external-change synchronization tests.
+- Updates GitHub Actions to `actions/setup-node@v5`.
+
 ## 0.1.0 — 2026-08-06
 
 Initial test release.

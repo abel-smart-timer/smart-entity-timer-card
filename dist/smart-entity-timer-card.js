@@ -4,8 +4,8 @@
  * MIT License
  */
 
-const CARD_VERSION = "0.1.0";
-const MIN_CARD_API_VERSION = 1;
+const CARD_VERSION = "0.1.1";
+const MIN_CARD_API_VERSION = 2;
 const DOMAIN = "smart_entity_timer";
 const ACTION_TURN_ON = "turn_on";
 const ACTION_TURN_OFF = "turn_off";
@@ -51,7 +51,6 @@ const I18N = {
     select_off: "Seleccionar apagado",
     open_more_info: "Abrir información de la entidad",
     service_error: "No se pudo completar la operación: {message}",
-    companion_warning: "No se localizaron todas las entidades auxiliares. La tarjeta seguirá funcionando mediante los servicios de la integración.",
     api_required: "La tarjeta requiere card_api_version {value} o posterior.",
     last_completed: "Temporizador completado",
     last_cancelled: "Temporizador cancelado",
@@ -99,7 +98,6 @@ const I18N = {
     select_off: "Select turn off",
     open_more_info: "Open entity information",
     service_error: "The operation could not be completed: {message}",
-    companion_warning: "Not all helper entities could be found. The card will continue to work through integration services.",
     api_required: "The card requires card_api_version {value} or later.",
     last_completed: "Timer completed",
     last_cancelled: "Timer cancelled",
@@ -112,8 +110,6 @@ const I18N = {
     status_unavailable: "Unavailable",
   },
 };
-
-let entityRegistryPromise;
 
 function languageFor(hass) {
   const language = hass?.language || hass?.locale?.language || navigator?.language || "en";
@@ -193,38 +189,6 @@ function statusLabel(hass, state) {
   return state === "off" || state === "standby" ? t(hass, "status_off") : t(hass, "status_on");
 }
 
-async function getEntityRegistry(hass) {
-  if (!entityRegistryPromise) {
-    entityRegistryPromise = hass
-      .callWS({ type: "config/entity_registry/list" })
-      .catch((error) => {
-        entityRegistryPromise = undefined;
-        throw error;
-      });
-  }
-  return entityRegistryPromise;
-}
-
-function inferCompanionsFromNames(statusEntityId, states) {
-  const objectId = String(statusEntityId || "").split(".")[1] || "";
-  const suffixes = ["_estado_del_temporizador", "_timer_status", "_estado", "_status"];
-  let base = objectId;
-  for (const suffix of suffixes) {
-    if (base.endsWith(suffix)) {
-      base = base.slice(0, -suffix.length);
-      break;
-    }
-  }
-  const candidates = {
-    duration: [`number.${base}_duracion`, `number.${base}_duration`],
-    action: [`select.${base}_accion`, `select.${base}_action`, `select.${base}_final_action`],
-    start: [`button.${base}_iniciar`, `button.${base}_start`],
-    cancel: [`button.${base}_cancelar`, `button.${base}_cancel`],
-  };
-  return Object.fromEntries(
-    Object.entries(candidates).map(([key, values]) => [key, values.find((entityId) => states?.[entityId])]),
-  );
-}
 
 class SmartEntityTimerCard extends HTMLElement {
   constructor() {
@@ -232,16 +196,15 @@ class SmartEntityTimerCard extends HTMLElement {
     this.attachShadow({ mode: "open" });
     this._hass = undefined;
     this._config = {};
-    this._companions = {};
-    this._discoveryKey = undefined;
     this._lastSignature = undefined;
     this._tickInterval = undefined;
     this._resultTimeout = undefined;
     this._resultTimeoutKey = undefined;
+    this._pendingReconcileTimeout = undefined;
     this._draftMinutes = 60;
     this._draftAction = ACTION_TURN_OFF;
-    this._durationDirty = false;
-    this._actionDirty = false;
+    this._pendingDuration = undefined;
+    this._pendingAction = undefined;
     this._pending = false;
     this._errorMessage = undefined;
   }
@@ -267,11 +230,6 @@ class SmartEntityTimerCard extends HTMLElement {
           layout: "Diseño",
           show_target_state: "Mostrar estado de la entidad",
           show_last_result: "Mostrar resultado reciente",
-          max_duration_minutes: "Máximo de minutos (respaldo)",
-          duration_entity: "Entidad Duración (opcional)",
-          action_entity: "Entidad Acción (opcional)",
-          start_entity: "Botón Iniciar (opcional)",
-          cancel_entity: "Botón Cancelar (opcional)",
         }
       : {
           entity: "Timer status entity",
@@ -281,22 +239,15 @@ class SmartEntityTimerCard extends HTMLElement {
           layout: "Layout",
           show_target_state: "Show target entity state",
           show_last_result: "Show recent result",
-          max_duration_minutes: "Maximum minutes (fallback)",
-          duration_entity: "Duration entity (optional)",
-          action_entity: "Action entity (optional)",
-          start_entity: "Start button (optional)",
-          cancel_entity: "Cancel button (optional)",
         };
     const helpers = spanish
       ? {
-          entity: "Selecciona el sensor creado por la integración Smart Entity Timer.",
+          entity: "Selecciona el sensor Estado del temporizador de Smart Entity Timer 0.1.3 o posterior.",
           increment_minutes: "Valor usado por los botones − y +. Puedes introducir cualquier duración manualmente.",
-          advanced: "Normalmente no necesitas completar las entidades auxiliares; la tarjeta intenta encontrarlas automáticamente.",
         }
       : {
-          entity: "Select the sensor created by the Smart Entity Timer integration.",
+          entity: "Select the Timer status sensor from Smart Entity Timer 0.1.3 or later.",
           increment_minutes: "Used by the − and + buttons. Any duration can still be entered manually.",
-          advanced: "Normally you do not need to set helper entities; the card tries to discover them automatically.",
         };
 
     return {
@@ -342,22 +293,6 @@ class SmartEntityTimerCard extends HTMLElement {
             { name: "show_last_result", selector: { boolean: {} } },
           ],
         },
-        {
-          type: "expandable",
-          name: "advanced",
-          flatten: true,
-          title: spanish ? "Configuración avanzada" : "Advanced configuration",
-          schema: [
-            {
-              name: "max_duration_minutes",
-              selector: { number: { min: 1, max: 10080, step: 1, mode: "box", unit_of_measurement: "min" } },
-            },
-            { name: "duration_entity", selector: { entity: { filter: [{ domain: "number" }] } } },
-            { name: "action_entity", selector: { entity: { filter: [{ domain: "select" }] } } },
-            { name: "start_entity", selector: { entity: { filter: [{ domain: "button" }] } } },
-            { name: "cancel_entity", selector: { entity: { filter: [{ domain: "button" }] } } },
-          ],
-        },
       ],
       computeLabel: (schema) => labels[schema.name],
       computeHelper: (schema) => helpers[schema.name],
@@ -379,25 +314,20 @@ class SmartEntityTimerCard extends HTMLElement {
       layout: "auto",
       show_target_state: true,
       show_last_result: true,
-      max_duration_minutes: 1440,
       ...config,
     };
     if (previousEntity !== this._config.entity) {
-      this._companions = {};
-      this._discoveryKey = undefined;
       this._lastSignature = undefined;
-      this._durationDirty = false;
-      this._actionDirty = false;
+      this._pendingDuration = undefined;
+      this._pendingAction = undefined;
     }
-    this._applyExplicitCompanions();
+    this._syncDrafts();
     this._render();
-    this._discoverCompanions();
   }
 
   set hass(hass) {
     this._hass = hass;
-    this._applyExplicitCompanions();
-    this._discoverCompanions();
+    this._reconcilePending();
     this._syncDrafts();
     this._updateTicking();
     this._scheduleResultExpiry();
@@ -422,6 +352,8 @@ class SmartEntityTimerCard extends HTMLElement {
     this._clearTicking();
     if (this._resultTimeout) clearTimeout(this._resultTimeout);
     this._resultTimeout = undefined;
+    if (this._pendingReconcileTimeout) clearTimeout(this._pendingReconcileTimeout);
+    this._pendingReconcileTimeout = undefined;
   }
 
   getCardSize() {
@@ -441,98 +373,85 @@ class SmartEntityTimerCard extends HTMLElement {
     return this._hass?.states?.[this._config.entity];
   }
 
-  _applyExplicitCompanions() {
-    this._companions = {
-      ...this._companions,
-      duration: this._config.duration_entity || this._companions.duration,
-      action: this._config.action_entity || this._companions.action,
-      start: this._config.start_entity || this._companions.start,
-      cancel: this._config.cancel_entity || this._companions.cancel,
-    };
-  }
-
-  async _discoverCompanions() {
-    if (!this._hass || !this._config.entity) return;
-    const discoveryKey = `${this._config.entity}|${this._hass.connection ? "connected" : "local"}`;
-    if (this._discoveryKey === discoveryKey) return;
-    this._discoveryKey = discoveryKey;
-
-    let discovered = {};
-    try {
-      const registry = await getEntityRegistry(this._hass);
-      if (Array.isArray(registry)) {
-        const statusEntry = registry.find((entry) => entry.entity_id === this._config.entity);
-        const uniqueId = statusEntry?.unique_id;
-        if (statusEntry?.platform === DOMAIN && typeof uniqueId === "string" && uniqueId.endsWith("_status")) {
-          const prefix = uniqueId.slice(0, -"_status".length);
-          const byUniqueId = (suffix) =>
-            registry.find((entry) => entry.platform === DOMAIN && entry.unique_id === `${prefix}_${suffix}`)?.entity_id;
-          discovered = {
-            duration: byUniqueId("duration"),
-            action: byUniqueId("end_action"),
-            start: byUniqueId("start"),
-            cancel: byUniqueId("cancel"),
-          };
-        }
-      }
-    } catch (error) {
-      console.debug("Smart Entity Timer Card could not query the entity registry", error);
-    }
-
-    const inferred = inferCompanionsFromNames(this._config.entity, this._hass.states);
-    this._companions = {
-      duration: this._config.duration_entity || discovered.duration || inferred.duration,
-      action: this._config.action_entity || discovered.action || inferred.action,
-      start: this._config.start_entity || discovered.start || inferred.start,
-      cancel: this._config.cancel_entity || discovered.cancel || inferred.cancel,
-    };
-    this._syncDrafts();
-    this._lastSignature = undefined;
-    this._render();
-  }
-
   _relevantSignature() {
     if (!this._hass) return "no-hass";
-    const ids = [
-      this._config.entity,
-      this._companions.duration,
-      this._companions.action,
-      this._companions.start,
-      this._companions.cancel,
-    ].filter(Boolean);
-    return ids
-      .map((entityId) => {
-        const state = this._hass.states?.[entityId];
-        return `${entityId}:${state?.state ?? "missing"}:${state?.last_updated ?? ""}`;
-      })
-      .join("|");
+    const state = this._statusState();
+    return `${this._config.entity}:${state?.state ?? "missing"}:${state?.last_updated ?? ""}:${state?.last_changed ?? ""}`;
+  }
+
+  _backendDuration() {
+    const minutes = Number(this._statusState()?.attributes?.duration_minutes);
+    return Number.isFinite(minutes) && minutes >= 1 ? Math.round(minutes) : undefined;
+  }
+
+  _backendAction() {
+    const action = this._statusState()?.attributes?.end_action;
+    return [ACTION_TURN_ON, ACTION_TURN_OFF].includes(action) ? action : undefined;
+  }
+
+  _reconcilePending() {
+    const status = this._statusState();
+    if (!status) return;
+    const now = Date.now();
+    const lastUpdated = status.last_updated || status.last_changed || "";
+
+    if (this._pendingDuration) {
+      const backend = this._backendDuration();
+      const changed = lastUpdated && lastUpdated !== this._pendingDuration.baseline;
+      const expired = now - this._pendingDuration.started > 2500;
+      if (backend === this._pendingDuration.value || changed || expired) {
+        this._pendingDuration = undefined;
+      }
+    }
+
+    if (this._pendingAction) {
+      const backend = this._backendAction();
+      const changed = lastUpdated && lastUpdated !== this._pendingAction.baseline;
+      const expired = now - this._pendingAction.started > 2500;
+      if (backend === this._pendingAction.value || changed || expired) {
+        this._pendingAction = undefined;
+      }
+    }
+  }
+
+  _schedulePendingReconcile() {
+    if (this._pendingReconcileTimeout) clearTimeout(this._pendingReconcileTimeout);
+    this._pendingReconcileTimeout = setTimeout(() => {
+      this._pendingReconcileTimeout = undefined;
+      this._reconcilePending();
+      this._syncDrafts();
+      this._render();
+    }, 2600);
   }
 
   _syncDrafts() {
     const status = this._statusState();
     if (!status) return;
     const busy = [STATUS_ACTIVE, STATUS_EXECUTING].includes(status.state);
-    const durationState = this._companions.duration ? this._hass?.states?.[this._companions.duration] : undefined;
-    const actionState = this._companions.action ? this._hass?.states?.[this._companions.action] : undefined;
+    const backendDuration = this._backendDuration();
+    const backendAction = this._backendAction();
 
-    if (!this._durationDirty || busy) {
-      const minutes = Number(durationState?.state ?? status.attributes.duration_minutes);
-      if (Number.isFinite(minutes) && minutes >= 1) this._draftMinutes = Math.round(minutes);
-      if (busy) this._durationDirty = false;
+    if (!this._pendingDuration || busy) {
+      if (backendDuration !== undefined) this._draftMinutes = backendDuration;
+      if (busy) this._pendingDuration = undefined;
+    } else {
+      this._draftMinutes = this._pendingDuration.value;
     }
-    if (!this._actionDirty || busy) {
-      const action = actionState?.state ?? status.attributes.end_action;
-      if ([ACTION_TURN_ON, ACTION_TURN_OFF].includes(action)) this._draftAction = action;
-      if (busy) this._actionDirty = false;
+
+    if (!this._pendingAction || busy) {
+      if (backendAction !== undefined) this._draftAction = backendAction;
+      if (busy) this._pendingAction = undefined;
+    } else {
+      this._draftAction = this._pendingAction.value;
     }
   }
 
   _maxDuration() {
-    const numberState = this._companions.duration ? this._hass?.states?.[this._companions.duration] : undefined;
-    const fromEntity = Number(numberState?.attributes?.max);
-    const fromConfig = Number(this._config.max_duration_minutes);
-    if (Number.isFinite(fromEntity) && fromEntity >= 1) return Math.round(fromEntity);
-    if (Number.isFinite(fromConfig) && fromConfig >= 1) return Math.round(fromConfig);
+    const constraints = this._statusState()?.attributes?.constraints;
+    const maxSeconds = Number(constraints?.max_seconds);
+    if (Number.isFinite(maxSeconds) && maxSeconds >= 60) {
+      return Math.max(1, Math.floor(maxSeconds / 60));
+    }
     return 1440;
   }
 
@@ -682,7 +601,6 @@ class SmartEntityTimerCard extends HTMLElement {
     const canStart = this._localCanStart();
     const canCancel = active && !this._pending;
     const statusMessage = this._statusMessage(status, targetName, targetState, targetEntity);
-    const missingCompanions = !this._companions.duration || !this._companions.action;
     const layoutClass = ["compact", "expanded"].includes(this._config.layout) ? this._config.layout : "auto";
     const actionLabel = action === ACTION_TURN_ON ? t(this._hass, "turn_on") : t(this._hass, "turn_off");
     const progressLabel = active ? t(this._hass, "remaining") : t(this._hass, "programmed");
@@ -751,8 +669,6 @@ class SmartEntityTimerCard extends HTMLElement {
             </div>
           </section>
 
-          ${missingCompanions && this._config.show_companion_warning ? `<div class="companion-warning">${escapeHtml(t(this._hass, "companion_warning"))}</div>` : ""}
-
           <footer>
             <button id="start" class="primary-action" ${canStart ? "" : "disabled"}>
               <ha-icon icon="${active ? "mdi:timer-sand" : "mdi:play"}"></ha-icon>
@@ -785,7 +701,6 @@ class SmartEntityTimerCard extends HTMLElement {
     const updateDraft = () => {
       const total = Math.max(1, (Number(hours?.value) || 0) * 60 + (Number(minutes?.value) || 0));
       this._draftMinutes = clamp(Math.round(total), 1, this._maxDuration());
-      this._durationDirty = true;
     };
     const commit = () => {
       updateDraft();
@@ -810,30 +725,53 @@ class SmartEntityTimerCard extends HTMLElement {
 
   async _setAction(action) {
     if (![ACTION_TURN_ON, ACTION_TURN_OFF].includes(action)) return;
+    const status = this._statusState();
+    const baseline = status?.last_updated || status?.last_changed || "";
     this._draftAction = action;
-    this._actionDirty = true;
+    this._pendingAction = { value: action, baseline, started: Date.now() };
+    this._pending = true;
     this._errorMessage = undefined;
     this._render();
-    const entityId = this._companions.action;
-    if (!entityId) return;
     try {
-      await this._hass.callService("select", "select_option", { entity_id: entityId, option: action });
+      await this._hass.callService(DOMAIN, "set_values", {
+        entity_id: this._config.entity,
+        end_action: action,
+      });
     } catch (error) {
+      this._pendingAction = undefined;
       this._showServiceError(error);
+    } finally {
+      this._pending = false;
+      this._reconcilePending();
+      this._schedulePendingReconcile();
+      this._syncDrafts();
+      this._render();
     }
   }
 
   async _setDuration(minutes) {
-    this._draftMinutes = clamp(Math.round(minutes), 1, this._maxDuration());
-    this._durationDirty = true;
+    const value = clamp(Math.round(minutes), 1, this._maxDuration());
+    const status = this._statusState();
+    const baseline = status?.last_updated || status?.last_changed || "";
+    this._draftMinutes = value;
+    this._pendingDuration = { value, baseline, started: Date.now() };
+    this._pending = true;
     this._errorMessage = undefined;
     this._render();
-    const entityId = this._companions.duration;
-    if (!entityId) return;
     try {
-      await this._hass.callService("number", "set_value", { entity_id: entityId, value: this._draftMinutes });
+      await this._hass.callService(DOMAIN, "set_values", {
+        entity_id: this._config.entity,
+        duration_minutes: value,
+      });
     } catch (error) {
+      this._pendingDuration = undefined;
       this._showServiceError(error);
+    } finally {
+      this._pending = false;
+      this._reconcilePending();
+      this._schedulePendingReconcile();
+      this._syncDrafts();
+      this._render();
     }
   }
 
@@ -848,13 +786,7 @@ class SmartEntityTimerCard extends HTMLElement {
     this._errorMessage = undefined;
     this._render();
     try {
-      await this._hass.callService(DOMAIN, "start", {
-        entity_id: this._config.entity,
-        duration_minutes: this._draftMinutes,
-        end_action: this._draftAction,
-      });
-      this._durationDirty = false;
-      this._actionDirty = false;
+      await this._hass.callService(DOMAIN, "start", { entity_id: this._config.entity });
     } catch (error) {
       this._showServiceError(error);
     } finally {
@@ -983,7 +915,6 @@ class SmartEntityTimerCard extends HTMLElement {
       .status-message.success .status-indicator { background: var(--success-color, #2eaf68); }
       .status-message.warning .status-indicator { background: var(--warning-color, #e8843d); }
       .status-message.error .status-indicator { background: var(--error-color, #db4437); }
-      .companion-warning { padding: 9px 11px; border-radius: 10px; font-size: .73rem; color: var(--warning-color); background: color-mix(in srgb, var(--warning-color) 10%, transparent); }
       footer { display: grid; grid-template-columns: 1.3fr 1fr; gap: 10px; }
       footer button {
         min-height: 48px; border-radius: 13px; border: 1px solid transparent; cursor: pointer; display: flex; align-items: center; justify-content: center;
