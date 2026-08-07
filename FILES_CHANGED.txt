@@ -1,0 +1,8 @@
+Documentation-only update for Smart Entity Timer Card 0.2.2
+
+Replace:
+- README.md
+- INSTALL.txt
+
+No JavaScript or package files are included.
+No version bump is required.
