@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.3.0 — 2026-08-08
+
+Mobile-first compact-layout release.
+
+- Added `mini` and `tile` layouts designed for phone dashboards.
+- Added `button_mode` with `auto`, `inline`, and `primary_only`.
+- Added optional `density` with `normal` and `tight`; Mini/Tile use tight spacing automatically when unset.
+- Start and Cancel remain side by side in inline mode even on narrow screens.
+- Tile automatic mode shows only the currently useful action button.
+- Mini/Tile duration controls remain on one row on phone-width cards.
+- Added compact progress, presets, headers, action selector, and ring/time variants.
+- Added layout-aware visibility defaults while preserving explicit visibility overrides.
+- Card API remains v2 and existing 0.2.2 configurations remain compatible.
+
+
 ## 0.2.2
 
 - Fixed custom colors selected in the visual editor not being applied to the rendered card.

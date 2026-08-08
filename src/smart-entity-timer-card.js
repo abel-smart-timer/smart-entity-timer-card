@@ -4,7 +4,7 @@
  * MIT License
  */
 
-const CARD_VERSION = "0.2.2";
+const CARD_VERSION = "0.3.0";
 const MIN_CARD_API_VERSION = 2;
 const DOMAIN = "smart_entity_timer";
 const ACTION_TURN_ON = "turn_on";
@@ -110,6 +110,17 @@ const I18N = {
     layout_auto: "Automático",
     layout_compact: "Compacto",
     layout_expanded: "Expandido",
+    layout_mini: "Mini",
+    layout_tile: "Mosaico",
+    density: "Densidad",
+    density_normal: "Normal",
+    density_tight: "Ajustada",
+    button_mode: "Botones de acción",
+    button_auto: "Automático",
+    button_inline: "Lado a lado",
+    button_primary_only: "Solo acción disponible",
+    helper_density: "Si queda vacío, Mini y Mosaico usan densidad ajustada; los demás usan normal.",
+    helper_button_mode: "Automático usa botones lado a lado en vistas normales y Mini, y solo la acción disponible en Mosaico.",
     helper_quick_times: "Agrega minutos, por ejemplo 15, 30, 60 y 120. Déjalo vacío para no usar presets.",
     helper_colors: "Cada color controla directamente ese elemento. Si queda vacío, se usa el tema de Home Assistant.",
     helper_action_mode: "Una acción fija oculta el selector y se aplica al iniciar desde esta tarjeta.",
@@ -208,6 +219,17 @@ const I18N = {
     layout_auto: "Automatic",
     layout_compact: "Compact",
     layout_expanded: "Expanded",
+    layout_mini: "Mini",
+    layout_tile: "Tile",
+    density: "Density",
+    density_normal: "Normal",
+    density_tight: "Tight",
+    button_mode: "Action buttons",
+    button_auto: "Automatic",
+    button_inline: "Side by side",
+    button_primary_only: "Available action only",
+    helper_density: "When left empty, Mini and Tile use tight density; other layouts use normal density.",
+    helper_button_mode: "Automatic uses side-by-side controls in normal and Mini layouts, and only the available action in Tile.",
     helper_quick_times: "Add minute values such as 15, 30, 60 and 120. Leave empty to disable presets.",
     helper_colors: "Each color directly controls that element. Empty values inherit the Home Assistant theme.",
     helper_action_mode: "A fixed action hides the selector and is applied when starting from this card.",
@@ -369,6 +391,7 @@ class SmartEntityTimerCard extends HTMLElement {
       layout: "auto",
       visual_style: "modern",
       action_mode: "selectable",
+      button_mode: "auto",
       progress_style: "bar",
       time_format: "auto",
       quick_times: [],
@@ -417,6 +440,8 @@ class SmartEntityTimerCard extends HTMLElement {
                         ["auto", dict.layout_auto],
                         ["compact", dict.layout_compact],
                         ["expanded", dict.layout_expanded],
+                        ["mini", dict.layout_mini],
+                        ["tile", dict.layout_tile],
                       ]),
                     },
                   },
@@ -429,6 +454,17 @@ class SmartEntityTimerCard extends HTMLElement {
                         ["modern", dict.style_modern],
                         ["flat", dict.style_flat],
                         ["minimal", dict.style_minimal],
+                      ]),
+                    },
+                  },
+                },
+                {
+                  name: "density",
+                  selector: {
+                    select: {
+                      options: selectOptions([
+                        ["normal", dict.density_normal],
+                        ["tight", dict.density_tight],
                       ]),
                     },
                   },
@@ -451,6 +487,18 @@ class SmartEntityTimerCard extends HTMLElement {
                     ["selectable", dict.selectable],
                     ["turn_on", dict.only_on],
                     ["turn_off", dict.only_off],
+                  ]),
+                },
+              },
+            },
+            {
+              name: "button_mode",
+              selector: {
+                select: {
+                  options: selectOptions([
+                    ["auto", dict.button_auto],
+                    ["inline", dict.button_inline],
+                    ["primary_only", dict.button_primary_only],
                   ]),
                 },
               },
@@ -558,6 +606,8 @@ class SmartEntityTimerCard extends HTMLElement {
         }
         if (schema.name === "quick_times") return dict.helper_quick_times;
         if (schema.name === "action_mode") return dict.helper_action_mode;
+        if (schema.name === "button_mode") return dict.helper_button_mode;
+        if (schema.name === "density") return dict.helper_density;
         if (schema.name?.startsWith("color_")) return dict.helper_colors;
         return undefined;
       },
@@ -572,11 +622,13 @@ class SmartEntityTimerCard extends HTMLElement {
   setConfig(config) {
     if (!config || typeof config !== "object") throw new Error("Invalid Smart Entity Timer Card configuration");
     const previousEntity = this._config?.entity;
+    this._rawConfig = { ...config };
     this._config = {
       increment_minutes: 30,
       layout: "auto",
       visual_style: "modern",
       action_mode: "selectable",
+      button_mode: "auto",
       progress_style: "bar",
       time_format: "auto",
       quick_times: [],
@@ -630,18 +682,64 @@ class SmartEntityTimerCard extends HTMLElement {
   }
 
   getCardSize() {
-    if (this._config.visual_style === "minimal") return this._config.layout === "compact" ? 4 : 5;
-    return this._config.layout === "compact" ? 5 : 6;
+    const layout = this._config.layout;
+    if (layout === "tile") return 2;
+    if (layout === "mini") return 3;
+    if (layout === "compact") return this._config.visual_style === "minimal" ? 4 : 5;
+    return this._config.visual_style === "minimal" ? 5 : 6;
   }
 
   getGridOptions() {
-    const minimal = this._config.visual_style === "minimal";
+    const layout = this._config.layout;
+    let rows = this._config.visual_style === "minimal" ? 5 : 6;
+    if (layout === "compact") rows = this._config.visual_style === "minimal" ? 4 : 5;
+    if (layout === "mini") rows = 3;
+    if (layout === "tile") rows = 2;
     return {
-      rows: minimal ? (this._config.layout === "compact" ? 4 : 5) : this._config.layout === "compact" ? 5 : 6,
+      rows,
       columns: 6,
-      min_rows: 3,
+      min_rows: layout === "tile" ? 2 : 3,
       min_columns: 3,
     };
+  }
+
+  _hasExplicitConfig(name) {
+    return Object.prototype.hasOwnProperty.call(this._rawConfig || {}, name);
+  }
+
+  _effectiveDensity(layout) {
+    if (["normal", "tight"].includes(this._config.density)) return this._config.density;
+    return ["mini", "tile"].includes(layout) ? "tight" : "normal";
+  }
+
+  _effectiveButtonMode(layout) {
+    const configured = ["auto", "inline", "primary_only"].includes(this._config.button_mode)
+      ? this._config.button_mode
+      : "auto";
+    if (configured !== "auto") return configured;
+    return layout === "tile" ? "primary_only" : "inline";
+  }
+
+  _effectiveVisibility(name, layout, active) {
+    // A user can always hide a section. Mini/Tile additionally impose
+    // structural hiding so switching an existing 0.2.x card to a compact
+    // layout works even when old YAML contains explicit show_*: true values.
+    if (!this._config[name]) return false;
+
+    if (layout === "mini") {
+      if (name === "show_target_state") return false;
+      if (active && ["show_action_selector", "show_duration_controls", "show_quick_times"].includes(name)) return false;
+      return true;
+    }
+
+    if (layout === "tile") {
+      if (["show_target_state", "show_quick_times", "show_status", "show_last_result"].includes(name)) return false;
+      if (!active && name === "show_progress") return false;
+      if (active && ["show_action_selector", "show_duration_controls"].includes(name)) return false;
+      return true;
+    }
+
+    return true;
   }
 
   _statusState() {
@@ -844,8 +942,8 @@ class SmartEntityTimerCard extends HTMLElement {
     return entries.filter(([, value]) => value).map(([name, value]) => `${name}:${value}`).join(";");
   }
 
-  _renderProgress(style, active, progress, value, label) {
-    if (!this._config.show_progress) return "";
+  _renderProgress(style, active, progress, value, label, visible = this._config.show_progress) {
+    if (!visible) return "";
     const safeProgress = active ? clamp(progress, 0, 100) : 0;
     if (style === "ring") {
       return `
@@ -919,7 +1017,7 @@ class SmartEntityTimerCard extends HTMLElement {
     const canStart = this._localCanStart();
     const canCancel = active && !this._pending;
     const statusMessage = this._statusMessage(status, targetName, targetState, targetEntity, action);
-    const layoutClass = ["compact", "expanded"].includes(this._config.layout) ? this._config.layout : "auto";
+    const layoutClass = ["compact", "expanded", "mini", "tile"].includes(this._config.layout) ? this._config.layout : "auto";
     const visualStyle = ["flat", "minimal"].includes(this._config.visual_style) ? this._config.visual_style : "modern";
     const progressStyle = ["ring", "time"].includes(this._config.progress_style) ? this._config.progress_style : "bar";
     const timeFormat = ["digital", "text"].includes(this._config.time_format) ? this._config.time_format : "auto";
@@ -928,10 +1026,19 @@ class SmartEntityTimerCard extends HTMLElement {
     const progressValue = formatTimeValue(active ? remaining : displayMinutes, timeFormat, this._hass, active);
     const quickTimes = this._quickDurations();
     const fixedAction = this._fixedAction();
-    const showAction = this._config.show_action_selector && !fixedAction;
+    const showHeader = this._effectiveVisibility("show_header", layoutClass, active);
+    const showTargetState = this._effectiveVisibility("show_target_state", layoutClass, active);
+    const showActionSelector = this._effectiveVisibility("show_action_selector", layoutClass, active);
+    const showDurationControls = this._effectiveVisibility("show_duration_controls", layoutClass, active);
+    const showQuickTimes = this._effectiveVisibility("show_quick_times", layoutClass, active);
+    const showProgress = this._effectiveVisibility("show_progress", layoutClass, active);
+    const showStatus = this._effectiveVisibility("show_status", layoutClass, active);
+    const showAction = showActionSelector && !fixedAction;
+    const density = this._effectiveDensity(layoutClass);
+    const buttonMode = this._effectiveButtonMode(layoutClass);
     const customVars = this._colorVariables();
 
-    const header = this._config.show_header ? `
+    const header = showHeader ? `
       <header>
         <button class="entity-icon" id="more-info" title="${escapeHtml(t(this._hass, "open_more_info"))}" aria-label="${escapeHtml(t(this._hass, "open_more_info"))}">
           <ha-icon icon="${escapeHtml(icon)}"></ha-icon>
@@ -943,7 +1050,7 @@ class SmartEntityTimerCard extends HTMLElement {
         <div class="action-badge"><span class="badge-dot"></span>${escapeHtml(actionLabel)}</div>
       </header>` : "";
 
-    const targetSection = this._config.show_target_state ? `
+    const targetSection = showTargetState ? `
       <button class="target-state" id="target-more-info" aria-label="${escapeHtml(t(this._hass, "open_more_info"))}">
         <span>${escapeHtml(t(this._hass, "target_state"))}</span>
         <strong>${escapeHtml(statusLabel(this._hass, targetState))}</strong>
@@ -963,7 +1070,7 @@ class SmartEntityTimerCard extends HTMLElement {
         </div>
       </section>` : "";
 
-    const durationSection = this._config.show_duration_controls ? `
+    const durationSection = showDurationControls ? `
       <section class="duration-section">
         <div class="section-label">${escapeHtml(t(this._hass, "duration"))}</div>
         <div class="duration-control">
@@ -981,7 +1088,7 @@ class SmartEntityTimerCard extends HTMLElement {
         </div>
       </section>` : "";
 
-    const quickSection = this._config.show_quick_times && quickTimes.length ? `
+    const quickSection = showQuickTimes && quickTimes.length ? `
       <section class="quick-section">
         <div class="section-label">${escapeHtml(t(this._hass, "quick_times"))}</div>
         <div class="quick-grid">
@@ -989,8 +1096,8 @@ class SmartEntityTimerCard extends HTMLElement {
         </div>
       </section>` : "";
 
-    const progressVisual = this._renderProgress(progressStyle, active, progress, progressValue, progressLabel);
-    const statusBlock = this._config.show_status ? `
+    const progressVisual = this._renderProgress(progressStyle, active, progress, progressValue, progressLabel, showProgress);
+    const statusBlock = showStatus ? `
       <div class="status-message ${escapeHtml(statusMessage.type)}">
         <span class="status-indicator"></span>
         <div><strong>${escapeHtml(statusMessage.label || (active ? t(this._hass, "active") : t(this._hass, "idle")))}</strong><span>${escapeHtml(statusMessage.text)}</span></div>
@@ -999,21 +1106,28 @@ class SmartEntityTimerCard extends HTMLElement {
 
     const startStateClass = active || executing ? "timer-active" : canStart ? "start-ready" : "start-disabled";
     const cancelStateClass = canCancel ? "cancel-ready" : "inactive-state";
-    const footer = `
-      <footer>
+    const startButton = `
         <button id="start" class="primary-action ${startStateClass}" ${canStart ? "" : "disabled"}>
           <ha-icon icon="${active || executing ? "mdi:timer-sand" : "mdi:play"}"></ha-icon>
           <span>${escapeHtml(active || executing ? t(this._hass, "timer_on") : t(this._hass, "start"))}</span>
-        </button>
+        </button>`;
+    const cancelButton = `
         <button id="cancel" class="cancel-action ${cancelStateClass}" ${canCancel ? "" : "disabled"}>
           <ha-icon icon="${canCancel ? "mdi:close-circle-outline" : "mdi:timer-off-outline"}"></ha-icon>
           <span>${escapeHtml(canCancel ? t(this._hass, "cancel") : t(this._hass, "inactive"))}</span>
-        </button>
-      </footer>`;
+        </button>`;
+
+    let footerButtons = `${startButton}${cancelButton}`;
+    if (buttonMode === "primary_only") {
+      if (active && canCancel) footerButtons = cancelButton;
+      else if (active || executing) footerButtons = startButton;
+      else footerButtons = startButton;
+    }
+    const footer = `<footer class="buttons-${escapeHtml(buttonMode)}">${footerButtons}</footer>`;
 
     this.shadowRoot.innerHTML = `
       ${this._styles()}
-      <ha-card style="${escapeHtml(customVars)}" class="timer-card ${layoutClass} style-${visualStyle} progress-${progressStyle} action-${escapeHtml(action)} status-${escapeHtml(status.state)}">
+      <ha-card style="${escapeHtml(customVars)}" class="timer-card ${layoutClass} density-${density} buttons-${buttonMode} style-${visualStyle} progress-${progressStyle} action-${escapeHtml(action)} status-${escapeHtml(status.state)}">
         <div class="accent"></div>
         <div class="content">${header}${targetSection}${actionSection}${durationSection}${quickSection}${progressSection}${footer}</div>
       </ha-card>`;
@@ -1294,6 +1408,34 @@ class SmartEntityTimerCard extends HTMLElement {
       .spinner { width: 28px; height: 28px; border: 3px solid var(--set-border); border-top-color: var(--primary-color); border-radius: 50%; animation: spin .8s linear infinite; }
       @keyframes spin { to { transform: rotate(360deg); } }
 
+
+      /* Density controls spacing without changing available features. */
+      .density-tight .content { gap: 10px; padding: 12px; }
+      .density-tight header { gap: 9px; }
+      .density-tight .entity-icon { width: 38px; height: 38px; border-radius: 11px; }
+      .density-tight .entity-icon ha-icon { --mdc-icon-size: 23px; }
+      .density-tight .title { font-size: 1rem; }
+      .density-tight .subtitle { margin-top: 1px; font-size: .74rem; }
+      .density-tight .action-badge { padding: 4px 8px; font-size: .66rem; gap: 5px; }
+      .density-tight .badge-dot { width: 6px; height: 6px; box-shadow: none; }
+      .density-tight section { gap: 5px; }
+      .density-tight .segment { min-height: 34px; font-size: .8rem; }
+      .density-tight .segmented { padding: 3px; gap: 4px; border-radius: 10px; }
+      .density-tight .step-button, .density-tight .time-inputs { min-height: 46px; }
+      .density-tight .step-button { border-radius: 10px; }
+      .density-tight .step-button span { font-size: .64rem; }
+      .density-tight .time-inputs { border-radius: 11px; padding: 4px 7px; }
+      .density-tight .time-inputs input { font-size: 1.3rem; }
+      .density-tight .time-separator { font-size: 1.15rem; }
+      .density-tight .quick-grid { gap: 5px; }
+      .density-tight .quick-button { padding: 5px 8px; font-size: .7rem; }
+      .density-tight .progress-section { padding: 8px; gap: 6px; border-radius: 11px; }
+      .density-tight .progress-track { height: 6px; }
+      .density-tight .time-mode { min-height: 48px; }
+      .density-tight .time-mode strong { font-size: 1.35rem; }
+      .density-tight footer { gap: 7px; }
+      .density-tight footer button { min-height: 40px; border-radius: 10px; font-size: .82rem; }
+
       /* Flat: solid colors, visible borders, no elevation or gradients. */
       .style-flat { box-shadow: none; border: 1px solid var(--set-border); border-radius: 10px; }
       .style-flat .accent { height: 3px; background: var(--set-accent); }
@@ -1347,12 +1489,132 @@ class SmartEntityTimerCard extends HTMLElement {
         .raw-state { display: none; }
         .duration-control { grid-template-columns: 1fr 1fr; }
         .time-inputs { grid-column: 1 / -1; grid-row: 1; }
-        footer { grid-template-columns: 1fr; }
+
+        /* 0.3.0: inline action buttons must stay on one row on phones. */
+        footer.buttons-inline { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+        footer.buttons-primary_only { grid-template-columns: 1fr; }
+
+        /* Mini/Tile keep duration controls in a single compact row on phones. */
+        .mini .duration-control, .tile .duration-control {
+          grid-template-columns: 50px minmax(0, 1fr) 50px;
+          gap: 6px;
+        }
+        .mini .time-inputs, .tile .time-inputs {
+          grid-column: auto;
+          grid-row: auto;
+        }
       }
+
       .compact .target-state, .compact .section-label { display: none; }
       .compact .content { gap: 12px; }
       .compact .progress-section { padding: 11px; }
       .expanded .content { padding: 22px; gap: 18px; }
+
+      /* Mini: mobile-first, about half the vertical footprint of the full card. */
+      .mini .accent { height: 3px; }
+      .mini .content { padding: 11px 12px 12px; gap: 8px; }
+      .mini header { grid-template-columns: auto minmax(0,1fr) auto; gap: 8px; }
+      .mini .entity-icon { width: 34px; height: 34px; border-radius: 10px; }
+      .mini .entity-icon ha-icon { --mdc-icon-size: 21px; }
+      .mini .title { font-size: .98rem; }
+      .mini .subtitle { display: none; }
+      .mini .action-badge { padding: 4px 7px; font-size: .64rem; }
+      .mini .section-label { display: none; }
+      .mini .segmented { padding: 2px; border-radius: 9px; }
+      .mini .segment { min-height: 32px; font-size: .76rem; gap: 5px; }
+      .mini .segment ha-icon { --mdc-icon-size: 18px; }
+      .mini .duration-control {
+        grid-template-columns: 50px minmax(120px,1fr) 50px;
+        gap: 6px;
+      }
+      .mini .step-button { min-height: 44px; border-radius: 10px; }
+      .mini .step-button ha-icon { --mdc-icon-size: 20px; }
+      .mini .step-button span { font-size: .6rem; }
+      .mini .time-inputs { min-height: 44px; border-radius: 10px; padding: 3px 6px; }
+      .mini .time-inputs input { font-size: 1.23rem; }
+      .mini .time-inputs label span { font-size: .59rem; }
+      .mini .time-separator { font-size: 1.08rem; }
+      .mini .quick-grid {
+        flex-wrap: nowrap;
+        gap: 4px;
+        overflow-x: auto;
+        scrollbar-width: none;
+        padding-bottom: 1px;
+      }
+      .mini .quick-grid::-webkit-scrollbar { display: none; }
+      .mini .quick-button {
+        flex: 0 0 auto;
+        padding: 4px 7px;
+        font-size: .68rem;
+      }
+      .mini .progress-section { padding: 7px 8px; gap: 5px; border-radius: 10px; }
+      .mini .progress-heading span { font-size: .7rem; }
+      .mini .progress-heading strong { font-size: .9rem; }
+      .mini .progress-track { height: 5px; }
+      .mini .ring-wrap { width: min(94px, 32vw); }
+      .mini .ring-wrap circle { stroke-width: 8; }
+      .mini .ring-center strong { font-size: .92rem; }
+      .mini .ring-center span { font-size: .66rem; }
+      .mini .time-mode { min-height: 42px; }
+      .mini .time-mode strong { font-size: 1.2rem; }
+      .mini .status-message { align-items: center; gap: 7px; }
+      .mini .status-indicator { margin-top: 0; }
+      .mini .status-message strong { font-size: .72rem; }
+      .mini .status-message span:last-child { display: none; }
+      .mini .status-message.error span:last-child,
+      .mini .status-message.warning span:last-child { display: block; font-size: .68rem; }
+      .mini footer button { min-height: 38px; border-radius: 9px; font-size: .8rem; }
+
+      /* Tile: only the essential timer control, ideal below a climate card or in a grid. */
+      .tile .accent { height: 2px; }
+      .tile .content { padding: 9px 10px 10px; gap: 7px; }
+      .tile header { grid-template-columns: auto minmax(0,1fr) auto; gap: 7px; }
+      .tile .entity-icon { width: 30px; height: 30px; border-radius: 9px; }
+      .tile .entity-icon ha-icon { --mdc-icon-size: 19px; }
+      .tile .title { font-size: .9rem; }
+      .tile .subtitle { display: none; }
+      .tile .action-badge { padding: 3px 6px; font-size: .6rem; gap: 4px; }
+      .tile .badge-dot { width: 5px; height: 5px; box-shadow: none; }
+      .tile .section-label { display: none; }
+      .tile .segmented { padding: 2px; gap: 3px; border-radius: 8px; }
+      .tile .segment { min-height: 29px; font-size: .7rem; gap: 4px; }
+      .tile .segment ha-icon { --mdc-icon-size: 16px; }
+      .tile .duration-control {
+        grid-template-columns: 44px minmax(105px,1fr) 44px;
+        gap: 5px;
+      }
+      .tile .step-button { min-height: 40px; border-radius: 9px; }
+      .tile .step-button ha-icon { --mdc-icon-size: 19px; }
+      .tile .step-button span { display: none; }
+      .tile .time-inputs { min-height: 40px; border-radius: 9px; padding: 2px 5px; }
+      .tile .time-inputs input { font-size: 1.08rem; }
+      .tile .time-inputs label span { font-size: .55rem; }
+      .tile .time-separator { font-size: .98rem; padding-top: 1px; }
+      .tile .quick-grid {
+        flex-wrap: nowrap;
+        gap: 4px;
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+      .tile .quick-grid::-webkit-scrollbar { display: none; }
+      .tile .quick-button { flex: 0 0 auto; padding: 3px 6px; font-size: .64rem; }
+      .tile .progress-section { padding: 6px 7px; gap: 4px; border-radius: 9px; }
+      .tile .progress-heading span { font-size: .66rem; }
+      .tile .progress-heading strong { font-size: .84rem; }
+      .tile .progress-track { height: 4px; }
+      .tile .ring-wrap { width: min(78px, 28vw); }
+      .tile .ring-wrap circle { stroke-width: 8; }
+      .tile .ring-center strong { font-size: .82rem; }
+      .tile .ring-center span { font-size: .6rem; }
+      .tile .time-mode { min-height: 36px; }
+      .tile .time-mode strong { font-size: 1.05rem; }
+      .tile footer { gap: 5px; }
+      .tile footer button { min-height: 36px; border-radius: 8px; font-size: .76rem; }
+
+      /* Button presentation. */
+      footer.buttons-inline { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); }
+      footer.buttons-primary_only { grid-template-columns: 1fr; }
+
       @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
     </style>`;
   }
@@ -1380,6 +1642,7 @@ if (!window.customCards.some((card) => card.type === "smart-entity-timer-card"))
           layout: "auto",
           visual_style: "modern",
           action_mode: "selectable",
+          button_mode: "auto",
           progress_style: "bar",
           time_format: "auto",
           show_header: true,

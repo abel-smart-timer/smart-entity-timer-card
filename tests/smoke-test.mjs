@@ -42,7 +42,7 @@ globalThis.window = { customCards: [] };
 Object.defineProperty(globalThis, "navigator", { value: { language: "es-MX" }, configurable: true });
 
 const module = await import("../dist/smart-entity-timer-card.js");
-assert.equal(module.CARD_VERSION, "0.2.2");
+assert.equal(module.CARD_VERSION, "0.3.0");
 assert.equal(module.formatClock(3661), "01:01:01");
 assert.equal(module.formatTimeValue(90, "text", { language: "es" }, false), "1 h 30 min");
 assert.equal(module.formatTimeValue(61, "digital", { language: "es" }, true), "01:01");
@@ -120,6 +120,10 @@ assert.match(formText, /color_rgb/);
 assert.match(formText, /quick_times/);
 assert.match(formText, /action_mode/);
 assert.match(formText, /progress_style/);
+assert.match(formText, /layout_mini|mini/);
+assert.match(formText, /tile/);
+assert.match(formText, /button_mode/);
+assert.match(formText, /density/);
 assert.doesNotMatch(formText, /show_footer/);
 assert.doesNotMatch(formText, /color_background/);
 assert.match(formText, /color_start/);
@@ -246,10 +250,95 @@ assert.doesNotMatch(hidden.shadowRoot.innerHTML, /<header>/);
 assert.doesNotMatch(hidden.shadowRoot.innerHTML, /action-section/);
 assert.doesNotMatch(hidden.shadowRoot.innerHTML, /duration-section/);
 assert.doesNotMatch(hidden.shadowRoot.innerHTML, /<section class="progress-section">/);
-assert.match(hidden.shadowRoot.innerHTML, /<footer>/);
+assert.match(hidden.shadowRoot.innerHTML, /<footer class=/);
 assert.match(hidden.shadowRoot.innerHTML, /id="start"/);
 assert.match(hidden.shadowRoot.innerHTML, /id="cancel"/);
 
+
+// 0.3.0 Mini layout: dense one-row duration controls and inline actions.
+// Defaults hide target state; quick durations remain available while idle.
+states[statusEntity].state = "idle";
+states[statusEntity].attributes.target_entity_state = "on";
+states[statusEntity].attributes.end_action = "turn_off";
+const mini = new Card();
+mini.setConfig({
+  entity: statusEntity,
+  layout: "mini",
+  quick_times: [30, 60, 120],
+});
+mini.hass = hass;
+assert.match(mini.shadowRoot.innerHTML, /class="timer-card mini density-tight buttons-inline/);
+assert.doesNotMatch(mini.shadowRoot.innerHTML, /class="target-state"/);
+assert.match(mini.shadowRoot.innerHTML, /data-quick-minutes="30"/);
+assert.match(mini.shadowRoot.innerHTML, /class="buttons-inline"/);
+assert.match(mini.shadowRoot.innerHTML, /id="start"/);
+assert.match(mini.shadowRoot.innerHTML, /id="cancel"/);
+
+// Mini active collapses editing controls by default but keeps progress/actions.
+states[statusEntity].state = "active";
+states[statusEntity].attributes.can_start = false;
+states[statusEntity].attributes.can_cancel = true;
+states[statusEntity].attributes.started_at = "2026-08-07T05:00:00.000Z";
+states[statusEntity].attributes.finishes_at = "2099-08-07T06:00:00.000Z";
+sequence += 1;
+states[statusEntity].last_updated = `2026-08-07T05:03:${String(sequence).padStart(2, "0")}.000Z`;
+mini.hass = hass;
+assert.doesNotMatch(mini.shadowRoot.innerHTML, /class="duration-section"/);
+assert.doesNotMatch(mini.shadowRoot.innerHTML, /class="quick-section"/);
+assert.doesNotMatch(mini.shadowRoot.innerHTML, /class="action-section"/);
+assert.match(mini.shadowRoot.innerHTML, /class="progress-section"/);
+assert.match(mini.shadowRoot.innerHTML, /id="cancel"/);
+
+// 0.3.0 Tile layout: primary action only and essential idle controls.
+states[statusEntity].state = "idle";
+states[statusEntity].attributes.can_start = true;
+states[statusEntity].attributes.can_cancel = false;
+delete states[statusEntity].attributes.started_at;
+delete states[statusEntity].attributes.finishes_at;
+sequence += 1;
+states[statusEntity].last_updated = `2026-08-07T05:04:${String(sequence).padStart(2, "0")}.000Z`;
+const tile = new Card();
+tile.setConfig({ entity: statusEntity, layout: "tile", action_mode: "turn_off", quick_times: [30, 60] });
+tile.hass = hass;
+assert.match(tile.shadowRoot.innerHTML, /class="timer-card tile density-tight buttons-primary_only/);
+assert.match(tile.shadowRoot.innerHTML, /class="buttons-primary_only"/);
+assert.match(tile.shadowRoot.innerHTML, /id="start"/);
+assert.doesNotMatch(tile.shadowRoot.innerHTML, /id="cancel"/);
+assert.doesNotMatch(tile.shadowRoot.innerHTML, /class="quick-section"/);
+assert.doesNotMatch(tile.shadowRoot.innerHTML, /class="progress-section"/);
+assert.doesNotMatch(tile.shadowRoot.innerHTML, /id="turn-on"/);
+
+// Tile structural compactness wins over legacy explicit show_*: true values.
+const tileLegacyVisible = new Card();
+tileLegacyVisible.setConfig({
+  entity: statusEntity,
+  layout: "tile",
+  show_quick_times: true,
+  show_progress: true,
+  show_status: true,
+  show_target_state: true,
+  quick_times: [30, 60],
+});
+tileLegacyVisible.hass = hass;
+assert.doesNotMatch(tileLegacyVisible.shadowRoot.innerHTML, /class="quick-section"/);
+assert.doesNotMatch(tileLegacyVisible.shadowRoot.innerHTML, /class="progress-section"/);
+assert.doesNotMatch(tileLegacyVisible.shadowRoot.innerHTML, /class="status-message/);
+assert.doesNotMatch(tileLegacyVisible.shadowRoot.innerHTML, /class="target-state"/);
+
+// Button mode can be forced independent of layout.
+const primaryOnlyMini = new Card();
+primaryOnlyMini.setConfig({ entity: statusEntity, layout: "mini", button_mode: "primary_only" });
+primaryOnlyMini.hass = hass;
+assert.match(primaryOnlyMini.shadowRoot.innerHTML, /buttons-primary_only/);
+assert.match(primaryOnlyMini.shadowRoot.innerHTML, /id="start"/);
+assert.doesNotMatch(primaryOnlyMini.shadowRoot.innerHTML, /id="cancel"/);
+
+// Density can be forced back to normal on Mini.
+const normalMini = new Card();
+normalMini.setConfig({ entity: statusEntity, layout: "mini", density: "normal" });
+normalMini.hass = hass;
+assert.match(normalMini.shadowRoot.innerHTML, /mini density-normal/);
+
 assert.ok(serviceCalls.some((call) => call.service === "set_values" && call.data.duration_minutes === 90));
 assert.ok(serviceCalls.some((call) => call.service === "set_values" && call.data.end_action === "turn_on"));
-console.log("Smart Entity Timer Card 0.2.2 tests passed.");
+console.log("Smart Entity Timer Card 0.3.0 tests passed.");

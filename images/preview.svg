@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720">
   <rect width="1200" height="720" rx="32" fill="#111827"/>
-  <text x="70" y="78" fill="#f8fafc" font-family="Arial,sans-serif" font-size="34" font-weight="700">Smart Entity Timer Card 0.2.2</text>
+  <text x="70" y="78" fill="#f8fafc" font-family="Arial,sans-serif" font-size="34" font-weight="700">Smart Entity Timer Card 0.3.0</text>
   <text x="70" y="115" fill="#94a3b8" font-family="Arial,sans-serif" font-size="18">Optional personalization · Card API v2</text>
   <g transform="translate(70,155)">
     <rect width="650" height="500" rx="24" fill="#1f2937" stroke="#374151"/>
