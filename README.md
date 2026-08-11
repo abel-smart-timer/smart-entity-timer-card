@@ -1,313 +1,196 @@
-# Smart Entity Timer Card
+# Smart Entity Timer
 
-A responsive and configurable Home Assistant dashboard card for the [Smart Entity Timer integration](https://github.com/abel-smart-timer/smart-entity-timer).
-
-![Card preview](images/preview.svg)
+Persistent turn-on/turn-off timers for Home Assistant entities.
 
 **Version:** 0.3.0  
-**Required backend:** Smart Entity Timer with `card_api_version: 2` (Smart Entity Timer 0.3.0 recommended)
+**Minimum Home Assistant version:** 2026.7.0  
+**Card API:** 2  
+**Recommended card:** [Smart Entity Timer Card 0.3.0 or newer](https://github.com/abel-smart-timer/smart-entity-timer-card)
 
-## What is new in 0.3.0
+## What changes in 0.3.0
 
-Version 0.3.0 focuses on mobile dashboard density without changing the Smart Entity Timer backend contract.
+Smart Entity Timer is now modeled as **one Home Assistant integration entry with one config subentry per timer**.
 
-- Added true `mini` and `tile` layouts.
-- Added `button_mode: auto | inline | primary_only`.
-- `auto` keeps Start/Cancel side by side in normal and Mini layouts, and shows only the currently useful action in Tile.
-- Added optional `density: normal | tight`; when omitted, Mini/Tile automatically use tight density.
-- Mini and Tile keep duration controls on one row on narrow phone screens.
-- Mini keeps quick durations compact and horizontally scrollable when needed.
-- Tile structurally hides nonessential sections so legacy `show_*: true` values cannot accidentally make it tall.
-- Active Mini/Tile cards collapse idle editing controls by default and prioritize remaining time/progress plus Cancel.
-- Existing 0.2.2 configurations remain valid and Card API v2 is unchanged.
-
-### Layout guide
-
-| Layout | Purpose | Typical relative height |
-|---|---|---:|
-| `expanded` | Full controls and information | 100% |
-| `compact` | Existing reduced layout | ~70–75% |
-| `mini` | Mobile-first full timer control | ~45–55% |
-| `tile` | Essential quick control / grid use | ~30–40% |
-
-`mini` is recommended for normal phone dashboards. `tile` is recommended below a climate card or where several timers share the same dashboard.
-
-## Requirements
-
-- Home Assistant 2026.7.0 or newer.
-- Smart Entity Timer integration with Card API v2 (0.3.0 recommended).
-- At least one configured Smart Entity Timer.
-
-## Core behavior
-
-- Choose **Turn on** or **Turn off**, or make a card permanently ON-only/OFF-only.
-- Enter any duration in hours and minutes.
-- Use configurable `−30 min` / `+30 min` adjustment buttons.
-- Use optional quick-duration presets such as 15, 30, 60, and 120 minutes.
-- Start and cancel with correct disabled states.
-- Live countdown calculated locally without writing every second to Home Assistant.
-- React to completion, manual cancellation, automatic cancellation, restart restoration, skipped actions, and errors.
-- Synchronize duration/action changes across multiple phones, tablets, and browsers through Card API v2.
-- Configure the card with Home Assistant's visual editor.
-
-## HACS installation / update
-
-HACS is the recommended installation method.
-
-1. Open **HACS**.
-2. Find **Smart Entity Timer Card**.
-3. Install or update to **0.3.0**.
-4. HACS should create and manage the dashboard resource automatically.
-5. Reload the frontend or fully close/reopen the Home Assistant mobile app.
-
-## Manual installation / update
-
-1. Copy `dist/smart-entity-timer-card.js` to:
-
-   `/config/www/smart-entity-timer-card/smart-entity-timer-card.js`
-
-2. Configure the dashboard resource as **JavaScript Module**:
-
-   `/local/smart-entity-timer-card/smart-entity-timer-card.js?v=0.3.0`
-
-3. If upgrading, change the existing resource query to `?v=0.3.0`.
-4. Hard-refresh the browser or fully close/reopen the Home Assistant mobile app.
-
-## Minimal configuration
-
-```yaml
-type: custom:smart-entity-timer-card
-entity: sensor.luz_del_bano_estado
+```text
+Smart Entity Timer
+├── Bathroom light timer
+├── Air conditioner timer
+├── Bedroom fan timer
+└── Water heater timer
 ```
 
-This preserves the familiar default behavior: selectable ON/OFF action, modern style, bar progress, automatic time format, and no quick presets until configured.
+This replaces the old 0.2.x model where every timer was an independent Helper config entry.
 
-## Example: personalized card
+The practical result is a more intuitive UI:
 
-```yaml
-type: custom:smart-entity-timer-card
-entity: sensor.luz_del_bano_estado
-name: Temporizador baño
-icon: mdi:timer-outline
-increment_minutes: 30
-layout: auto
-visual_style: modern
-action_mode: selectable
-progress_style: ring
-time_format: auto
-quick_times:
-  - "15"
-  - "30"
-  - "60"
-  - "120"
-show_header: true
-show_target_state: true
-show_action_selector: true
-show_duration_controls: true
-show_quick_times: true
-show_progress: true
-show_status: true
-show_last_result: true
-color_start: [46, 175, 104]
-color_timer_active: [74, 112, 245]
-color_cancel: [219, 68, 55]
-color_inactive: [125, 125, 125]
-color_turn_on: [46, 175, 104]
-color_turn_off: [232, 132, 61]
-color_progress: [74, 112, 245]
-color_quick: [120, 120, 120]
-color_quick_selected: [92, 75, 219]
+- Smart Entity Timer is managed from **Settings → Devices & services → Integrations**.
+- The integration has a single parent entry.
+- Use **Add timer** to create additional timer subentries.
+- Reconfigure each timer directly from the Smart Entity Timer integration page.
+- All timer preferences, notification templates, target entity, and restart settings are managed in that timer's reconfigure flow.
+
+The manifest uses `integration_type: hub` because the single parent entry manages multiple timer services, and `single_config_entry: true` prevents accidental duplicate parent entries.
+
+## Upgrade from 0.2.x
+
+On the first Home Assistant start with 0.3.0, existing Smart Entity Timer 0.1.x/0.2.x entries are consolidated automatically:
+
+```text
+Before
+ConfigEntry A → Bathroom light
+ConfigEntry B → Air conditioner
+ConfigEntry C → Bedroom fan
+
+After
+Smart Entity Timer parent
+├── Subentry → Bathroom light
+├── Subentry → Air conditioner
+└── Subentry → Bedroom fan
 ```
 
-All color fields are optional. If omitted, the card inherits Home Assistant theme colors.
+The migration preserves:
 
-## Example: OFF-only compact card
+- existing `entity_id` values;
+- existing entity `unique_id` values;
+- timer persistent-storage keys;
+- configured target entities and preferences;
+- personalized notification templates;
+- dashboard cards and automations that reference the existing status sensor.
 
-```yaml
-type: custom:smart-entity-timer-card
-entity: sensor.aire_acondicionado_estado
-action_mode: turn_off
-layout: compact
-visual_style: minimal
-progress_style: time
-time_format: digital
-quick_times:
-  - "30"
-  - "60"
-  - "120"
-show_target_state: false
-```
+For migrated timers, the old config-entry ID becomes the timer's stable internal ID. New 0.3.x timers use their config-subentry ID as their stable timer ID.
 
-When `action_mode` is fixed, the ON/OFF selector is hidden. The fixed action is applied to the backend immediately before starting from that card. This allows multiple cards for the same timer to present different fixed actions without changing the backend merely by being displayed.
+### Important upgrade procedure
 
-## Mobile layout examples
+Before upgrading from 0.2.x to 0.3.0:
 
-Mini:
+1. **Wait for every active timer to finish or cancel it.** Do not update while any Smart Entity Timer is active or executing.
+2. Create a Home Assistant backup.
+3. Install/update Smart Entity Timer.
+4. Restart Home Assistant.
+5. Open **Settings → Devices & services → Integrations → Smart Entity Timer** and verify that all previous timers appear under the single integration entry.
 
-```yaml
-type: custom:smart-entity-timer-card
-entity: sensor.aire_sala_aire_estado
-layout: mini
-action_mode: turn_off
-button_mode: auto
-quick_times:
-  - "30"
-  - "60"
-  - "120"
-  - "180"
-show_target_state: false
-```
+Updating while a timer is active is not part of the supported upgrade procedure for the 0.2.x → 0.3.0 topology migration.
 
-Tile:
+## Existing timer behavior remains unchanged
 
-```yaml
-type: custom:smart-entity-timer-card
-entity: sensor.aire_sala_aire_estado
-layout: tile
-action_mode: turn_off
-button_mode: auto
-progress_style: bar
-```
+Each timer still creates five native entities:
 
-To force only the usable action button in any layout:
+- timer status sensor;
+- duration number in whole minutes;
+- final-action selector (`turn_on` / `turn_off`);
+- start button;
+- cancel button.
 
-```yaml
-button_mode: primary_only
-```
+The timer still runs entirely in Home Assistant, so no dashboard or browser must remain open.
 
-To force reduced spacing:
+- Arbitrary whole-minute durations.
+- Turn-on or turn-off final action.
+- Manual cancellation.
+- Automatic cancellation when the target reaches the requested state early.
+- Final race-safe state check before execution.
+- Persistent restart restoration during normal Home Assistant restarts.
+- Expired OFF timers execute after startup by default.
+- Expired ON timers are skipped after startup by default for safety.
+- Personalized lifecycle notifications.
+- Lifecycle events for advanced automations.
+- Multiple independent timers.
+- Card API v2.
 
-```yaml
-density: tight
-```
+## Supported domains
 
-## Configuration reference
+`switch`, `light`, `fan`, `climate`, `media_player`, `humidifier`, `input_boolean`, `remote`, and `water_heater`.
 
-### General
+## Notifications
 
-| Option | Default | Description |
-|---|---|---|
-| `entity` | required | Smart Entity Timer status sensor using Card API v2. |
-| `name` | target name | Optional card title. |
-| `icon` | action-dependent | MDI icon. |
-| `increment_minutes` | `30` | Amount added/removed by the step buttons. |
-| `layout` | `auto` | `auto`, `compact`, `expanded`, `mini`, `tile`. |
-| `visual_style` | `modern` | `modern`, `flat`, `minimal`. |
-| `density` | layout-dependent | Optional `normal` or `tight`; Mini/Tile use `tight` when omitted. |
+0.3.0 keeps the notification customization introduced in 0.2.0. Custom title/message fields support:
 
-### Action and duration
+`{timer_name}`, `{target_name}`, `{target_entity}`, `{action}`, `{action_id}`, `{action_past}`, `{duration}`, `{duration_minutes}`, `{result}`, `{reason}`, `{finished_at}`, `{restored}`, `{default_title}`, `{default_message}`.
 
-| Option | Default | Description |
-|---|---|---|
-| `action_mode` | `selectable` | `selectable`, `turn_on`, or `turn_off`. |
-| `button_mode` | `auto` | `auto`, `inline`, or `primary_only`. |
-| `quick_times` | `[]` | List of quick preset durations in minutes. |
-| `progress_style` | `bar` | `bar`, `ring`, or `time`. |
-| `time_format` | `auto` | `auto`, `digital`, or `text`. |
+Leave a custom field blank to preserve the built-in message. The available variables and examples are also shown directly in the timer configuration UI.
 
-`auto` shows a human-readable programmed duration while idle and a digital countdown while active. `digital` uses a clock-like value in both states. `text` uses values such as `1 h 30 min` and includes seconds while active.
+## Lifecycle events
 
-### Visibility
+The public event contract remains:
 
-| Option | Default |
-|---|---:|
-| `show_header` | `true` |
-| `show_target_state` | `true` |
-| `show_action_selector` | `true` |
-| `show_duration_controls` | `true` |
-| `show_quick_times` | `true` |
-| `show_progress` | `true` |
-| `show_status` | `true` |
-| `show_last_result` | `true` |
+- `smart_entity_timer.started`
+- `smart_entity_timer.completed`
+- `smart_entity_timer.cancelled`
+- `smart_entity_timer.skipped`
+- `smart_entity_timer.error`
 
-`show_action_selector` has no visual effect when `action_mode` is fixed because fixed-action cards intentionally hide the selector.
+## Card API v2 compatibility
 
-### Optional colors
+Card API remains version 2. **Smart Entity Timer Card 0.3.0 is the recommended companion card.** Existing Smart Entity Timer Card 0.2.2 configurations also continue working without changes, including cards that point to migrated sensor entity IDs.
 
-The visual editor uses Home Assistant RGB color selectors. Empty values inherit the Home Assistant theme. The controls map directly to visible UI elements instead of tinting the whole card.
+Smart Entity Timer Card 0.3.0 adds the mobile-first `mini` and `tile` layouts, compact action-button modes, and density controls without requiring any backend API change.
 
-| Option | Controls |
-|---|---|
-| `color_start` | Enabled **Start** button |
-| `color_timer_active` | Disabled **Timer ON** button while the timer is running |
-| `color_cancel` | Enabled **Cancel** button |
-| `color_inactive` | Disabled/inactive Start and Inactive button states |
-| `color_turn_on` | Turn-on selector, badge and action accents |
-| `color_turn_off` | Turn-off selector, badge and action accents |
-| `color_progress` | Progress bar, ring and time-only progress value |
-| `color_quick` | Unselected quick-duration buttons |
-| `color_quick_selected` | Selected quick-duration button |
+The status sensor remains the source of truth for the dashboard card and publishes `capabilities`, `constraints`, `companion_entities`, duration, action, timestamps, and timer lifecycle data.
 
-The experimental full-card background color from 0.2.0 was removed because it was not useful in real dashboard testing.
+## Actions
 
-For advanced YAML use, safe CSS color strings such as `#3366ff`, `rgb(...)`, `hsl(...)`, named colors, and `var(--theme-variable)` remain accepted.
-
-## Visual styles
-
-### Modern
-
-The default style. Uses rounded accent surfaces, soft shadows, gradients, and layered controls.
-
-### Flat
-
-Uses solid colors, visible borders, flatter corners, no elevation, and no gradients. Selected actions and presets become solid-color controls.
-
-### Minimal
-
-Removes most decorative containers, uses underline-style selectors and presets, tighter spacing, smaller controls, and no accent strip or elevation. Visibility options still decide which sections are present.
-
-## Progress modes
-
-### Bar
-
-Horizontal elapsed-progress bar with remaining/programmed time.
-
-### Ring
-
-Circular elapsed-progress indicator with the time in the center.
-
-### Time
-
-Shows only the time value and its label; no graphical progress track.
-
-## Synchronization contract
-
-Home Assistant remains the single source of truth. Duration/action changes are written through:
+### Set duration and/or action while idle
 
 ```yaml
 action: smart_entity_timer.set_values
 target:
   entity_id: sensor.luz_del_bano_estado
 data:
-  duration_minutes: 90
+  duration_minutes: 75
   end_action: turn_off
 ```
 
-The status sensor then publishes the authoritative values to every open card. The card does not query the Entity Registry for companion entities.
-
-## Compatibility with previous configurations
-
-The following continues to work unchanged:
+### Start
 
 ```yaml
-type: custom:smart-entity-timer-card
-entity: sensor.luz_del_bano_estado
-increment_minutes: 30
-layout: auto
-show_target_state: true
-show_last_result: true
+action: smart_entity_timer.start
+target:
+  entity_id: sensor.luz_del_bano_estado
 ```
 
-All 0.2.x options have safe defaults matching the familiar card behavior.
+### Cancel
 
-## Development validation
-
-```bash
-npm run check
-npm test
+```yaml
+action: smart_entity_timer.cancel
+target:
+  entity_id: sensor.luz_del_bano_estado
 ```
 
-The test suite checks syntax, Card API v2 synchronization, external state reconciliation, fixed actions, presets, time formats, RGB colors, style modes, visibility options, and confirms that normal operation does not query the Entity Registry.
+## Installation
+
+### HACS (recommended)
+
+Install or update **Smart Entity Timer** from HACS and restart Home Assistant when requested.
+
+For an upgrade from 0.2.x, first follow the upgrade procedure above: stop/cancel all timers and create a backup.
+
+For the dashboard, install **Smart Entity Timer Card 0.3.0 or newer** from HACS.
+
+### Manual installation
+
+1. Create a Home Assistant backup.
+2. Ensure all Smart Entity Timer timers are idle if upgrading from 0.2.x.
+3. Copy `custom_components/smart_entity_timer` into `/config/custom_components/smart_entity_timer`.
+4. Replace the existing files when upgrading.
+5. Restart Home Assistant.
+6. Open **Settings → Devices & services → Integrations → Smart Entity Timer**.
+
+Do not delete existing 0.2.x helpers before the first 0.3.0 start; they are the migration input.
+
+## Validation
+
+0.3.0 was validated on real Home Assistant installations for:
+
+- clean installation on Raspberry Pi 5;
+- adding multiple timers under one parent integration;
+- centralized timer reconfiguration;
+- blocking add/reconfigure while any timer is active;
+- deleting one timer without affecting the others;
+- migration of one and multiple 0.2.0 timers;
+- preservation of existing entity IDs;
+- Smart Entity Timer Card 0.3.0 compatibility through Card API v2;
+- personalized notifications and lifecycle events after migration.
+
+The repository also includes Python compilation, dependency-light regression tests, Hassfest, HACS validation, and a manual functional/migration test plan.
 
 ## License
 
